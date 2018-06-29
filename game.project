@@ -1,0 +1,37 @@
+[project]
+title = Screenrecorder
+version = 0.1
+custom_resources = resources/
+
+[bootstrap]
+main_collection = /main/main.collectionc
+render = /render/main.renderc
+
+[input]
+game_binding = /input/game.input_bindingc
+gamepads = /input/default.gamepadsc
+
+[display]
+width = 1280
+height = 720
+
+[physics]
+scale = 0.02
+gravity_y = 0.0
+
+[script]
+shared_state = 1
+
+[library]
+include_dirs = screenrecorder
+
+[ios]
+bundle_identifier = com.spiralcodestudio.test1
+
+[android]
+package = com.spiralcodestudio.test1
+manifest = /AndroidManifest.xml
+
+[osx]
+bundle_identifier = com.spiralcodestudio.test1
+

@@ -1,0 +1,42 @@
+-- This script controls the life of a tank's shell.
+-- Move forward and check for collisions.
+
+-- Used for collision check.
+go.property('is_meteor', false)
+go.property('is_tank', false)
+-- Direction of the movement.
+go.property('angle', 0)
+
+-- Constant speed of the movement.
+local speed = 10
+
+function update(self)
+	-- Calculate direction vector from the angle.
+	local dx, dy = math.cos(self.angle), math.sin(self.angle)
+	local position = go.get_position()
+	-- Translate the current position forward.
+	position.x = position.x + dx * speed
+	position.y = position.y + dy * speed
+	go.set_position(position)
+	
+	-- If outside of the play area - delete.
+	if vmath.length(position) > 700 then
+		go.delete()
+	end
+end
+
+function final(self)
+	-- When destroyed, tell so to the tank.
+	msg.post('/tank_base', hash('shell_destroyed'))
+end
+
+function on_message(self, message_id, message, sender)
+	-- Collision with a meteor.
+    if message_id == hash('collision_response') then
+        if go.get(msg.url(nil, message.other_id, 'script'), hash('is_meteor')) then
+        	-- Tell the meteor it was hit.
+        	msg.post(message.other_id, hash('hit'))
+        	go.delete()
+        end
+    end
+end

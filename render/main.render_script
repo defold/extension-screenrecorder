@@ -1,0 +1,99 @@
+local camera = require('libs.camera')
+
+local frame_skip = false
+
+function init(self)
+	-- 3D models.
+	self.model_pred = render.predicate({'model'})
+	self.postprocessing_pred = render.predicate({'postprocessing'})
+	self.ui_pred = render.predicate({'ui'})
+	-- Blue sky.
+	self.clear_color = vmath.vector4(0.05, 0.4, 0.6, 1)
+	
+	-- Orthographic view matrix.
+	self.view = vmath.matrix4()
+	
+	-- Perspective view camera position and orientation.
+	self.camera_position = vmath.vector3(0, 100, 0)
+	self.camera_look_at = vmath.vector3(0, 0, 0)
+	
+	-- Top-down view by defaut.
+	self.is_perspective_view = false
+
+	camera.width, camera.height = render.get_window_width(), render.get_window_height()
+
+	local target_params = {
+		[render.BUFFER_COLOR_BIT] = {
+			format = render.FORMAT_RGBA,
+			width = render.get_window_width(),
+			height = render.get_window_height()
+		},
+		[render.BUFFER_DEPTH_BIT] = {
+			format = render.FORMAT_DEPTH,
+			width = render.get_window_width(),
+			height = render.get_window_height()
+		}
+	}
+
+	self.original_target = render.render_target('original', target_params)
+end
+
+function update(self, dt)
+	render.enable_render_target(self.original_target)
+	render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+	render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+	render.set_viewport(0, 0, render.get_window_width(), render.get_window_height())
+	camera.width, camera.height = render.get_window_width(), render.get_window_height()
+	if self.is_perspective_view then
+		-- Perspective.
+		local up = vmath.vector3(0, 0, 1)
+		local view = vmath.matrix4_look_at(self.camera_position, self.camera_look_at, up)
+		render.set_view(view)
+		local proj = vmath.matrix4_perspective(3.141592/2, 4/3, 1, 1000)
+		render.set_projection(proj)
+	else
+		-- Orthographic.
+		render.set_view(self.view)
+		local height = render.get_window_height()
+		local width = height * 4 / 3 -- 4x3 aspect ratio.
+		render.set_projection(vmath.matrix4_orthographic(
+			-width / 4, width / 4,
+			-height / 4, height / 4,
+			-1000, 1000))
+	end
+	
+	render.enable_state(render.STATE_DEPTH_TEST)
+	render.enable_state(render.STATE_CULL_FACE)
+	render.set_depth_mask(true)
+	render.draw(self.model_pred)
+
+	render.disable_render_target(self.original_target)
+
+	-- Skip every other frame for 30 FPS recording.
+	frame_skip = frame_skip and false or (screenrecorder.capture_frame() or true)
+
+	-- Prepare fullscreen viewport.
+	render.set_view(vmath.matrix4())
+	render.set_projection(vmath.matrix4_orthographic(0, render.get_window_width(), 0, render.get_window_height(), -100, 100))
+	render.disable_state(render.STATE_DEPTH_TEST)
+	render.disable_state(render.STATE_CULL_FACE)
+
+	-- Render original target.
+	render.enable_texture(0, self.original_target, render.BUFFER_COLOR_BIT)
+	render.draw(self.postprocessing_pred, self.constants)
+	render.disable_texture(0, self.original_target)
+
+	-- Render UI.
+	render.draw(self.ui_pred)
+end
+
+function on_message(self, message_id, message, sender)
+	-- Update perspective camera position.
+	if message_id == hash('camera') then
+		self.camera_position = message.camera_position
+		self.camera_look_at = message.camera_look_at
+	-- Switch perspective/orthographic view modes.
+	elseif message_id == hash('camera_mode') then
+		self.is_perspective_view = message.is_perspective_view
+	end
+end

@@ -1,0 +1,30 @@
+local camera = require('libs.camera')
+
+-- In this script just tell the tank and the ground where is the light source.
+
+function init(self)
+	local position = go.get_position('/light')
+	local light = vmath.vector4(position.x, position.y, position.z, 0)
+	model.set_constant('/tank_base#model', 'light', light)
+	model.set_constant('/tank_turret#model', 'light', light)
+	model.set_constant('/ground#model', 'light', light)
+
+	local rec_offset = camera.width * 0.1
+	local rec_size = camera.width * 0.05
+	go.set_position(vmath.vector3(rec_offset, camera.height - rec_offset, 0), '/rec_button')
+	go.set_scale(vmath.vector3(rec_size, rec_size, 1), '/rec_button')
+
+	go.set_position(vmath.vector3(camera.width / 2, camera.height / 2, 0), '/postprocessing')
+	go.set_scale(vmath.vector3(camera.width / 2, camera.height / 2, 1), '/postprocessing')
+
+	screenrecorder.enable_debug()
+	local info = screenrecorder.get_info()
+	print('version', info.version)
+	print('vendor', info.vendor)
+	print('renderer', info.renderer)
+	print('shading_language_version', info.shading_language_version)
+	print('extensions:')
+	for ext in string.gmatch(info.extensions, '%S+') do
+		print('', ext)
+	end
+end

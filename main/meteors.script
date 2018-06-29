@@ -1,0 +1,45 @@
+-- This script generates new meteors.
+-- It always keeps the amount of meteors at a certain value.
+
+-- How many meteors at the same time.
+local count = 10
+
+function init(self)
+	-- Start with 0 meteors.
+	self.meteor_count = 0
+end
+
+function update(self)
+	-- Each frame create a new meteor until the limit is reached.
+	if self.meteor_count < count then
+		-- Position at a random radial point.
+		local angle = math.random(-math.pi, math.pi)
+		local radius = math.random(500, 600)
+		local position = vmath.vector3(math.cos(angle) * radius, math.sin(angle) * radius, 50)
+		-- Random scale base.
+		local scale = math.random(10, 15);
+		-- Create a new meteor instance.
+		local meteor = factory.create(
+			'#factory',
+			position,
+			vmath.quat_rotation_z(math.random(math.pi)) * vmath.quat_rotation_x(math.random(math.pi)), -- Random rotation.
+			{angle = angle - math.pi + math.random() - 0.5}, -- Reverse the direction with some random offset.
+			vmath.vector3(scale * (1 + math.random() / 3), scale * (1 + math.random() / 3), scale * (1 + math.random() / 3)) -- Random scale components.
+		)
+		
+		-- Tell the meteor where is the light source.
+		local position = go.get_position('/light')
+		local light = vmath.vector4(position.x, position.y, position.z, 0)
+		model.set_constant(msg.url(nil, meteor, 'model'), 'light', light)
+		
+		-- Increase meteors count.
+		self.meteor_count = self.meteor_count + 1
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	-- When a meteor is destroyed, decrease the counter.
+	if message_id == hash('meteor_destroyed') then
+		self.meteor_count = self.meteor_count - 1
+	end	
+end

@@ -1,0 +1,293 @@
+-- This script controls the tank.
+local camera = require('libs.camera')
+
+-- Used for collision check.
+go.property('is_meteor', false)
+go.property('is_tank', true)
+
+local audio_filename
+local is_screenrecorder_init = false
+local function toggle_rec()
+	-- Temporary audio track file, saved from resources.
+	if not audio_filename then
+		local audio_content = sys.load_resource('/resources/audio.aac')
+		audio_filename = sys.get_save_file('screenrecorder', 'audio.aac')
+		local audio_file = io.open(audio_filename, 'w')
+		audio_file:write(audio_content)
+		audio_file:close()
+	end
+
+	-- Temporary video track file.
+	local video_filename = sys.get_save_file('screenrecorder', 'video.mp4')
+	
+	local params = {
+		width = 1280, height = 720, -- Video file dimensions.
+		filename = video_filename,
+		--fps = 30, -- Default is 30 frames per second.
+		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
+		duration = 30, -- If set, use circular encoder to record last N seconds.
+		iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
+		texture_id = 2, -- Texture id to render.
+		--x_scale = 1, -- Horizontal scale, default is 1.
+		--y_scale = 1, -- Vertical scale, default is 1.
+		listener = function(event)
+			if event.phase == 'init' then
+				if not event.is_error then
+					is_screenrecorder_init = true
+					print('Screenrecorder initialized.')
+				else
+					print('Screenrecorder failed to initialize.')
+					print(event.error_message)
+				end
+			elseif event.phase == 'recorded' then
+				if not event.is_error then
+					print('Screenrecorder saved the recording.')
+					screenrecorder.mux_audio_video{
+						audio_filename = audio_filename,
+						video_filename = video_filename,
+						filename = '/sdcard/gameplay.mp4' -- Writing to /sdcard/ requires user to grant a permission.
+					}
+				else
+					print('Screenrecorder failed to save the recording.')
+					print(event.error_message)
+				end
+			elseif event.phase == 'muxed' then
+				if not event.is_error then
+					print('Screenrecorder muxed audio and video tracks.')
+				else
+					print('Screenrecorder failed to mux audio and video tracks.')
+					print(event.error_message)
+				end
+			end
+		end
+	}
+	-- Set to Full HD if screen is big enough.
+	-- TODO: determine if device is actually powerful enough.
+	--if camera.width >= 1920 and camera.height >= 1080 then
+	--	params.width, params.height, params.bitrate = 1920, 1080, 3 * 1024 * 1024
+	--end
+	
+	if not screenrecorder.is_recording() then
+		if not is_screenrecorder_init then
+			screenrecorder.init(params) 
+		else
+			screenrecorder.start()
+		end
+	else
+		screenrecorder.stop()
+		-- Reinit is required each time.
+		is_screenrecorder_init = false
+	end
+end
+
+local function process_touch(action)
+	if action.pressed then
+		local x, y = action.x, action.y
+		x = x * camera.width / 1280
+		y = y * camera.height / 720
+		local rec_offset = camera.width * 0.1
+		local rec_size = camera.width * 0.05
+		if x > rec_offset - rec_size and x < rec_offset + rec_size
+		and y > camera.height - rec_offset - rec_size and y < camera.height - rec_offset + rec_size then
+			toggle_rec()
+		end
+	end
+end
+
+-- Fire from the main weapon.
+local function fire(self)
+	-- Allow only three shells to exist at the same time to prevent spamming.
+	if self.shell_count < 3 then
+		-- Create a new shell instance.
+		local shell = factory.create(
+			'/shells#factory',
+			go.get_position('/tank_turret'), -- Copy position of the tank.
+			go.get_rotation('/tank_turret'), -- Copy rotation of the tank.
+			{angle = self.turret_angle} -- Set the direction the same as the turret.
+		)
+
+		-- Tell the shell where is the light source.
+		local position = go.get_position('/light')
+		local light = vmath.vector4(position.x, position.y, position.z, 0)
+		model.set_constant(msg.url(nil, shell, 'model'), 'light', light)
+
+		-- Increase shell count.
+		self.shell_count = self.shell_count + 1
+	end
+end
+
+-- Switch between top-down and 3rd person views.
+local function toggle_view(self)
+	self.is_perspective_view = not self.is_perspective_view
+	-- Tell the render script.
+	msg.post('@render:', hash('camera_mode'), {
+		is_perspective_view = self.is_perspective_view
+	})
+end
+
+function init(self)
+	msg.post('.', 'acquire_input_focus')
+	-- Speed values for the tank movement and rotation.
+	self.turn_speed = 0.1
+	self.speed = 3
+
+	-- Current movement/rotation values of the tank base.
+	self.turn = 0
+	self.velocity = 0
+	-- Direction of the tank base.
+	self.angle = 0
+
+	-- Current rotation value of the turret.
+	self.turret_turn = 0
+	-- Direction of the turret.
+	self.turret_angle = 0
+
+	-- How many shells are in the play.
+	self.shell_count = 0
+
+	-- Start with the top-down view.
+	self.is_perspective_view = false
+
+	-- Weapon cooldown
+	self.cooldown_timeout = 0
+end
+
+function update(self)
+	-- Adjust the tank's base direction.
+	self.angle = self.angle - self.turn * self.turn_speed
+	go.set_rotation(vmath.quat_rotation_z(self.angle))
+
+	-- Move the tank.
+	local dx, dy = math.cos(self.angle), math.sin(self.angle)
+	local base_position = go.get_position()
+	base_position.x = base_position.x + dx * self.velocity * self.speed
+	base_position.y = base_position.y + dy * self.velocity * self.speed
+	go.set_position(base_position)
+
+	-- Adjust the turret direction.
+	self.turret_angle = self.turret_angle - self.turret_turn * self.turn_speed
+	go.set_rotation(vmath.quat_rotation_z(self.turret_angle), '/tank_turret')
+
+	-- Glue the turret to the tank's base.
+	local turret_position = go.get_position('/tank_turret')
+	turret_position.x, turret_position.y = base_position.x, base_position.y
+	go.set_position(turret_position, '/tank_turret')
+
+	-- In the perspective view, tell the render script to position the camera behind the turret.
+	if self.is_perspective_view then
+		local dx, dy = math.cos(self.turret_angle), math.sin(self.turret_angle)
+		-- How far from the turret.
+		local dist = 40
+		msg.post('@render:', hash('camera'), {
+			camera_position = vmath.vector3(base_position.x - dx * dist, base_position.y - dy * dist, dist),
+			camera_look_at = vmath.vector3(base_position.x + dx * dist, base_position.y + dy * dist, dist / 2)
+		})
+	end
+
+	-- Cooldown weapon
+	if self.cooldown_timeout > 0 then
+		self.cooldown_timeout = self.cooldown_timeout - 1
+	else
+		self.is_hot = false
+	end
+	if self.want_fire then
+		fire(self)
+		self.want_fire = false
+	end
+end
+
+-- If your gamepad doesn't work, generate the mapping wth the GDC program and add it to the /input/default.gamepads
+-- http://forum.defold.com/t/mapping-gamepad-adding-not-conventional-gamepads-to-defold/3933/4
+function on_input(self, action_id, action)
+	-- Left stick - tank's rotation/movement.
+	if action_id == hash('gamepad-lstick-left') then
+		self.turn = -action.value
+	elseif action_id == hash('gamepad-lstick-right') then
+		self.turn = action.value
+	elseif action_id == hash('gamepad-lstick-down') then
+		self.velocity = -action.value
+	elseif action_id == hash('gamepad-lstick-up') then
+		self.velocity = action.value
+
+	-- Right stick - turret's rotation.
+	elseif action_id == hash('gamepad-rstick-left') then
+		self.turret_turn = -action.value
+	elseif action_id == hash('gamepad-rstick-right') then
+		self.turret_turn = action.value
+
+	-- WASD keys - tank's rotation/movement.
+	elseif action_id == hash('key-a') then
+		if action.pressed then
+			self.turn = -1
+		elseif action.released then
+			self.turn = 0
+		end
+	elseif action_id == hash('key-d') then
+		if action.pressed then
+			self.turn = 1
+		elseif action.released then
+			self.turn = 0
+		end
+	elseif action_id == hash('key-s') then
+		if action.pressed then
+			self.velocity = -1
+		elseif action.released then
+			self.velocity = 0
+		end
+	elseif action_id == hash('key-w') then
+		if action.pressed then
+			self.velocity = 1
+		elseif action.released then
+			self.velocity = 0
+		end
+
+	-- Left/right arrow keys - turret rotation.
+	elseif action_id == hash('key-left') then
+		if action.pressed then
+			self.turret_turn = -1
+		elseif action.released then
+			self.turret_turn = 0
+		end
+	elseif action_id == hash('key-right') then
+		if action.pressed then
+			self.turret_turn = 1
+		elseif action.released then
+			self.turret_turn = 0
+		end
+
+	-- Right shoulder button or spacebar - fire.
+	elseif action_id == hash('fire') and action.pressed then
+		fire(self)
+	-- Left shoulder button or Q key - switch the view.
+	elseif action_id == hash('toggle_view') and action.pressed then
+		toggle_view(self)
+
+	-- Start/stop recording
+	elseif action_id == hash('key-r') then
+		if action.pressed then
+			toggle_rec()
+		end
+	elseif action_id == hash('touch') then
+		fire(self)
+		if #action.touch > 0 then
+			process_touch(action.touch[1])
+		end
+	elseif action_id == hash('mouse-button-left') then
+		--process_touch(action)
+	end
+end
+
+function on_message(self, message_id)
+	-- A shell has been destroyed, decrese the counter.
+	if message_id == hash('pencil_fire') then
+		fire(self)
+	elseif message_id == hash('shell_destroyed') then
+		self.shell_count = self.shell_count - 1
+	-- The tank has been hit by a meteor.
+	elseif message_id == hash('hit') then
+	-- Delete both the turret and the tank's base.
+		--pencil.disable()
+		--go.delete('/tank_turret')
+		--go.delete()
+	end
+end
