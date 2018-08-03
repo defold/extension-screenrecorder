@@ -74,10 +74,11 @@ static float quad_model[] = {
 
 // Cache references.
 static jobject lua_loader_object = NULL;
-static jmethodID lua_loader_app_finalize = NULL;
+static jmethodID lua_loader_finalize = NULL;
 static jmethodID lua_loader_update = NULL;
 static jmethodID lua_loader_get_encoder_surface = NULL;
 static jobject lua_state_object = NULL;
+static jmethodID lua_state_close = NULL;
 static jobject java_surface_object = NULL;
 
 static bool get_encoder_surface() {
@@ -178,22 +179,6 @@ extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_LuaLoader_stop_1
 
 static int extension_is_recording(lua_State *L) {
 	lua_pushboolean(L, is_recording);
-	return 1;
-}
-
-// A way to get Defold's render_target texture id, doesn't work because all
-// rendering code in render script is batched and executed later on.
-static int extension_grab_texture_id(lua_State *L) {
-	GLint defold_fbo;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defold_fbo);
-	GLenum error = glGetError(); if (error) dmLogError("glGetIntegerv GL_FRAMEBUFFER_BINDING: %d", error);
-	dmLogInfo("defold_fbo: %d", defold_fbo);
-
-	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &defold_texture_id);
-	error = glGetError(); if (error) dmLogError("glGetFramebufferAttachmentParameteriv: %d", error);
-	dmLogInfo("defold_texture_id: %d", defold_texture_id);
-
-	lua_pushnumber(L, defold_texture_id);
 	return 1;
 }
 
@@ -331,12 +316,24 @@ static bool init_gl() {
 	return true;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_init_1native(JNIEnv *env, jobject instance, jint _width, jint _height, jint texture_id, jdouble _x_scale, jdouble _y_scale) {
+extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_init_1native(JNIEnv *env, jobject instance, jint _width, jint _height, jlong render_target, jdouble _x_scale, jdouble _y_scale) {
 	width = _width;
 	height = _height;
-	defold_texture_id = texture_id;
 	x_scale = _x_scale;
 	y_scale = _y_scale;
+
+	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment((dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
+	if (color_texture == NULL) {
+		dmLogError("Could not get the color attachment from render target.");
+		return false;
+	}
+	GLuint *color_gl_handle = NULL;
+	dmGraphics::HandleResult result = dmGraphics::GetTextureHandle(color_texture, (void **)&color_gl_handle);
+	if (result != dmGraphics::HANDLE_RESULT_OK) {
+		dmLogError("Could not get texture handle from render target.");
+		return false;
+	}
+	defold_texture_id = *color_gl_handle;
 
 	if (!get_encoder_surface()) {
 		return false;
@@ -416,10 +413,12 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 }
 
 dmExtension::Result APP_INITIALIZE(dmExtension::AppParams *params) {
+	dmLogInfo("APP_INITIALIZE");
 	return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
+	dmLogInfo("APP_FINALIZE");
 	// Mention JNLua exports so they don't get optimized away.
 	if (params == NULL) {
 		Java_com_naef_jnlua_LuaState_lua_1version(NULL, NULL);
@@ -428,6 +427,7 @@ dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
 }
 
 dmExtension::Result INITIALIZE(dmExtension::Params *params) {
+	dmLogInfo("INITIALIZE");
 	lua_State *L = params->m_L;
 	ThreadAttacher attacher;
 	JNIEnv *env = attacher.env;
@@ -436,6 +436,7 @@ dmExtension::Result INITIALIZE(dmExtension::Params *params) {
 	// Prepare LuaState of JNLua with an actual Lua state.
 	jclass lua_state_class = class_loader.load("com/naef/jnlua/LuaState");
 	jmethodID lua_state_constructor = env->GetMethodID(lua_state_class, "<init>", "(J)V");
+	lua_state_close = env->GetMethodID(lua_state_class, "close", "()V");
 	lua_state_object = (jobject)env->NewGlobalRef(env->NewObject(lua_state_class, lua_state_constructor, (jlong)params->m_L));
 
 	// Invoke LuaLoader from the extension.
@@ -445,7 +446,7 @@ dmExtension::Result INITIALIZE(dmExtension::Params *params) {
 	}
 	jmethodID lua_loader_constructor = env->GetMethodID(lua_loader_class, "<init>", "(Landroid/app/Activity;)V");
 	jmethodID lua_loader_invoke = env->GetMethodID(lua_loader_class, "invoke", "(Lcom/naef/jnlua/LuaState;)I");
-	lua_loader_app_finalize = env->GetMethodID(lua_loader_class, "app_finalize", "(Lcom/naef/jnlua/LuaState;)V");
+	lua_loader_finalize = env->GetMethodID(lua_loader_class, "extension_finalize", "(Lcom/naef/jnlua/LuaState;)V");
 	lua_loader_update = env->GetMethodID(lua_loader_class, "update", "(Lcom/naef/jnlua/LuaState;)V");
 	lua_loader_get_encoder_surface = env->GetMethodID(lua_loader_class, "get_encoder_surface", "()Landroid/view/Surface;");
 	lua_loader_object = (jobject)env->NewGlobalRef(env->NewObject(lua_loader_class, lua_loader_constructor, dmGraphics::GetNativeAndroidActivity()));
@@ -465,9 +466,6 @@ dmExtension::Result INITIALIZE(dmExtension::Params *params) {
 	lua_pushcfunction(L, extension_get_info);
 	lua_setfield(L, -2, "get_info");
 
-	lua_pushcfunction(L, extension_grab_texture_id);
-	lua_setfield(L, -2, "grab_texture_id");
-
 	lua_pushcfunction(L, extension_is_recording);
 	lua_setfield(L, -2, "is_recording");
 
@@ -477,17 +475,25 @@ dmExtension::Result INITIALIZE(dmExtension::Params *params) {
 }
 
 dmExtension::Result UPDATE(dmExtension::Params *params) {
-	ThreadAttacher attacher;
-	// Update the Java side so it can invoke any pending listeners.
-	attacher.env->CallVoidMethod(lua_loader_object, lua_loader_update, lua_state_object);
+	if (lua_loader_object != NULL) {
+		ThreadAttacher attacher;
+		// Update the Java side so it can invoke any pending listeners.
+		attacher.env->CallVoidMethod(lua_loader_object, lua_loader_update, lua_state_object);
+	}
 	return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result FINALIZE(dmExtension::Params *params) {
+	dmLogInfo("FINALIZE");
 	ThreadAttacher attacher;
-	attacher.env->CallVoidMethod(lua_loader_object, lua_loader_app_finalize, lua_state_object);
-	attacher.env->DeleteGlobalRef(lua_loader_object);
-	attacher.env->DeleteGlobalRef(lua_state_object);
+	if (lua_loader_object != NULL) {
+		attacher.env->CallVoidMethod(lua_loader_object, lua_loader_finalize, lua_state_object);
+		attacher.env->DeleteGlobalRef(lua_loader_object);
+	}
+	if (lua_state_object != NULL) {
+		attacher.env->CallVoidMethod(lua_state_object, lua_state_close);
+		attacher.env->DeleteGlobalRef(lua_state_object);
+	}
 	if (java_surface_object != NULL) {
 		attacher.env->DeleteGlobalRef(java_surface_object);
 	}

@@ -1,1 +1,9 @@
 name: "screenrecorder"
+
+platforms:
+    arm64-ios:
+        context:
+            frameworks: ["AVFoundation", "ReplayKit", "CoreMedia"]
+            flags:      ["-stdlib=libc++"]
+            linkFlags:  ["-ObjC"]
+            libs:       ["c++"]

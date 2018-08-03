@@ -118,6 +118,17 @@
                 <action android:name="com.amazon.inapp.purchasing.NOTIFY" android:permission="com.amazon.inapp.purchasing.Permission.NOTIFY" />
             </intent-filter>
         </receiver>
+
+        <!-- For Defold Sharing extension -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="{{android.package}}.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths_screenrecorder" />
+        </provider>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.android.vending.BILLING" />

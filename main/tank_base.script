@@ -7,7 +7,16 @@ go.property('is_tank', true)
 
 local audio_filename
 local is_screenrecorder_init = false
+local reboot_i = 1
 local function toggle_rec()
+	-- Uncomment to test rebooting.
+	--[[if reboot_i == 4 then
+		print('Reboot!')
+		msg.post('@system:', 'reboot')
+		return
+	end
+	reboot_i = reboot_i + 1]]
+	
 	-- Temporary audio track file, saved from resources.
 	if not audio_filename then
 		local audio_content = sys.load_resource('/resources/audio.aac')
@@ -18,18 +27,33 @@ local function toggle_rec()
 	end
 
 	-- Temporary video track file.
-	local video_filename = sys.get_save_file('screenrecorder', 'video.mp4')
+	--local video_filename = sys.get_save_file('screenrecorder', 'video.mp4')
+	local video_filename = directories.path_for_file('video.mp4', directories.documents)
+	print(video_filename)
+
+	local output_filename = directories.path_for_file('gameplay.mp4', directories.documents)
+	--if sys.get_sys_info().system_name == 'Android' then
+	--	output_filename = '/sdcard/gameplay.mp4' -- Writing to /sdcard/ requires user to grant a permission.
+	--end
 	
 	local params = {
-		width = 1280, height = 720, -- Video file dimensions.
-		filename = video_filename,
-		--fps = 30, -- Default is 30 frames per second.
-		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
-		duration = 30, -- If set, use circular encoder to record last N seconds.
-		iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
-		texture_id = 2, -- Texture id to render.
+		--## Android params:
+		render_target = camera.render_target, -- Use texture from specified render target.
 		--x_scale = 1, -- Horizontal scale, default is 1.
 		--y_scale = 1, -- Vertical scale, default is 1.
+		
+		--## iOS params:
+		-- Shows a preview and edit window after a completed recording, default is false. Incompatible with set duration
+		-- and other video params. iOS takes full control over the video.
+		enable_preview = false,
+			
+		--## Shared params:
+		filename = video_filename,
+		width = 1280, height = 720, -- Video file dimensions.
+		iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
+		--duration = 30, -- If set, use circular encoder to record last N seconds.
+		--fps = 30, -- Default is 30 frames per second.
+		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
 		listener = function(event)
 			if event.phase == 'init' then
 				if not event.is_error then
@@ -42,11 +66,16 @@ local function toggle_rec()
 			elseif event.phase == 'recorded' then
 				if not event.is_error then
 					print('Screenrecorder saved the recording.')
-					screenrecorder.mux_audio_video{
-						audio_filename = audio_filename,
-						video_filename = video_filename,
-						filename = '/sdcard/gameplay.mp4' -- Writing to /sdcard/ requires user to grant a permission.
-					}
+					if screenrecorder.is_preview_available() then
+						print('Screenrecorder showing preview.')
+						screenrecorder.show_preview()
+					else
+						screenrecorder.mux_audio_video{
+							audio_filename = audio_filename,
+							video_filename = video_filename,
+							filename = output_filename
+						}
+					end
 				else
 					print('Screenrecorder failed to save the recording.')
 					print(event.error_message)
@@ -54,9 +83,16 @@ local function toggle_rec()
 			elseif event.phase == 'muxed' then
 				if not event.is_error then
 					print('Screenrecorder muxed audio and video tracks.')
+					share.file(output_filename)
 				else
 					print('Screenrecorder failed to mux audio and video tracks.')
 					print(event.error_message)
+				end
+			elseif event.phase == 'preview' then
+				if event.actions then
+					print('Screenrecorder preview ended with actions:', table.concat(event.actions, ', '), '.')
+				else
+					print('Screenrecorder preview is closed.')
 				end
 			end
 		end
