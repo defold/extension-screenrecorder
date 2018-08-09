@@ -18,7 +18,7 @@ function init(self)
 	self.camera_look_at = vmath.vector3(0, 0, 0)
 	
 	-- Top-down view by defaut.
-	self.is_perspective_view = true
+	self.is_perspective_view = false
 
 	camera.width, camera.height = render.get_window_width(), render.get_window_height()
 

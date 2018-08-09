@@ -51,7 +51,7 @@ local function toggle_rec()
 		filename = video_filename,
 		width = 1280, height = 720, -- Video file dimensions.
 		iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
-		--duration = 30, -- If set, use circular encoder to record last N seconds.
+		duration = 30, -- If set, use circular encoder to record last N seconds.
 		--fps = 30, -- Default is 30 frames per second.
 		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
 		listener = function(event)

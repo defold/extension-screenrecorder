@@ -2,7 +2,7 @@
 title = Screenrecorder
 version = 0.1
 custom_resources = resources/
-dependencies = https://github.com/lerg/defold-sharing/archive/master.zip,https://github.com/Lerg/extension-directories/archive/master.zip
+dependencies = https://github.com/Lerg/extension-directories/archive/master.zip,https://github.com/britzl/defold-sharing/archive/master.zip
 
 [bootstrap]
 main_collection = /main/main.collectionc
