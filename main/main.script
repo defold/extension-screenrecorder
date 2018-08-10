@@ -14,8 +14,8 @@ function init(self)
 	go.set_position(vmath.vector3(rec_offset, camera.height - rec_offset, 0), '/rec_button')
 	go.set_scale(vmath.vector3(rec_size, rec_size, 1), '/rec_button')
 
-	go.set_position(vmath.vector3(camera.width / 2, camera.height / 2, 0), '/postprocessing')
-	go.set_scale(vmath.vector3(camera.width / 2, camera.height / 2, 1), '/postprocessing')
+	go.set_position(vmath.vector3(camera.width_p2 / 2, camera.height_p2 / 2, 0), '/postprocessing')
+	go.set_scale(vmath.vector3(camera.width_p2 / 2, camera.height_p2 / 2, 1), '/postprocessing')
 
 	screenrecorder.enable_debug()
 	local info = screenrecorder.get_info()

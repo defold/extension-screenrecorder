@@ -45,14 +45,21 @@ local function toggle_rec()
 		--## iOS params:
 		-- Shows a preview and edit window after a completed recording, default is false. Incompatible with set duration
 		-- and other video params. iOS takes full control over the video.
-		enable_preview = false,
+		--enable_preview = true,
+		-- Scaling mode determines how frame is placed into specified width/height region.
+		-- SCALING_FIT - Crop to remove edge processing region; preserve aspect ratio of cropped source by reducing specified width or height if necessary.  Will not scale a small source up to larger dimensions.
+		-- SCALING_RESIZE - Crop to remove edge processing region; scale remainder to destination area.  Does not preserve aspect ratio.
+		-- SCALING_RESIZE_ASPECT - Preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.
+		-- SCALING_RESIZE_ASPECT_FILL - Preserve aspect ratio of the source, and crop picture to fit destination dimensions.
+		-- Default is SCALING_RESIZE_ASPECT.
+		--scaling = screenrecorder.SCALING_RESIZE_ASPECT,
 			
 		--## Shared params:
 		filename = video_filename,
 		width = 1280, height = 720, -- Video file dimensions.
-		iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
-		duration = 30, -- If set, use circular encoder to record last N seconds.
-		--fps = 30, -- Default is 30 frames per second.
+		--iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
+		--duration = 30, -- If set, use circular encoder to record last N seconds.
+		--fps = 60, -- Default is 30 frames per second.
 		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
 		listener = function(event)
 			if event.phase == 'init' then

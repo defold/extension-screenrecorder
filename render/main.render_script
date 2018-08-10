@@ -2,6 +2,15 @@ local camera = require('libs.camera')
 
 local frame_skip = false
 
+local function next_pow2(value)
+	local result = 1
+	while value > result do
+		result = bit.lshift(result, 1)
+	end
+	return result
+end
+
+
 function init(self)
 	-- 3D models.
 	self.model_pred = render.predicate({'model'})
@@ -21,17 +30,23 @@ function init(self)
 	self.is_perspective_view = false
 
 	camera.width, camera.height = render.get_window_width(), render.get_window_height()
+	if sys.get_sys_info().system_name == 'iPhone OS' then
+		-- Render target has to be power of 2 size on iOS
+		camera.width_p2, camera.height_p2 = next_pow2(camera.width), next_pow2(camera.height)
+	else
+		camera.width_p2, camera.height_p2 = camera.width, camera.height
+	end
 
 	local target_params = {
 		[render.BUFFER_COLOR_BIT] = {
 			format = render.FORMAT_RGBA,
-			width = render.get_window_width(),
-			height = render.get_window_height()
+			width = camera.width_p2,
+			height = camera.height_p2
 		},
 		[render.BUFFER_DEPTH_BIT] = {
 			format = render.FORMAT_DEPTH,
-			width = render.get_window_width(),
-			height = render.get_window_height()
+			width = camera.width_p2,
+			height = camera.height_p2
 		}
 	}
 
@@ -75,16 +90,17 @@ function update(self, dt)
 
 	-- Prepare fullscreen viewport.
 	render.set_view(vmath.matrix4())
-	render.set_projection(vmath.matrix4_orthographic(0, render.get_window_width(), 0, render.get_window_height(), -100, 100))
 	render.disable_state(render.STATE_DEPTH_TEST)
 	render.disable_state(render.STATE_CULL_FACE)
 
 	-- Render original target.
+	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
 	render.enable_texture(0, self.original_target, render.BUFFER_COLOR_BIT)
-	render.draw(self.postprocessing_pred, self.constants)
+	render.draw(self.postprocessing_pred)
 	render.disable_texture(0, self.original_target)
 
 	-- Render UI.
+	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
 	render.draw(self.ui_pred)
 end
 
