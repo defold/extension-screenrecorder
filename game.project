@@ -15,6 +15,7 @@ gamepads = /input/default.gamepadsc
 [display]
 width = 1280
 height = 720
+update_frequency = 60
 
 [physics]
 scale = 0.02
