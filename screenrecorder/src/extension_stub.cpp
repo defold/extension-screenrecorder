@@ -1,4 +1,4 @@
-#if !defined(DM_PLATFORM_ANDROID) && (!defined(DM_PLATFORM_IOS) || !defined(__LP64__))
+#if !defined(DM_PLATFORM_ANDROID) && !defined(DM_PLATFORM_IOS) && !defined(DM_PLATFORM_OSX) && !defined(DM_PLATFORM_LINUX) && !defined(DM_PLATFORM_WINDOWS)
 
 #include <dmsdk/sdk.h>
 #include "extension.h"
@@ -22,10 +22,12 @@ dmExtension::Result INITIALIZE(dmExtension::Params* params) {
 		{"init", stub},
 		{"start", stub},
 		{"stop", stub},
-		{"is_recording", stub},
 		{"mux_audio_video", stub},
 		{"capture_frame", stub},
 		{"get_info", stub},
+		{"is_recording", stub},
+		{"is_preview_available", stub},
+		{"show_preview", stub},
 		{NULL, NULL}
 	};
 

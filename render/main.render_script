@@ -17,7 +17,7 @@ function init(self)
 	self.postprocessing_pred = render.predicate({'postprocessing'})
 	self.ui_pred = render.predicate({'ui'})
 	-- Blue sky.
-	self.clear_color = vmath.vector4(0.05, 0.4, 0.6, 1)
+	self.clear_color = vmath.vector4(0.05, 0.0, 0.6, 1)
 	
 	-- Orthographic view matrix.
 	self.view = vmath.matrix4()
@@ -88,8 +88,12 @@ function update(self, dt)
 	-- Skip every other frame for 30 FPS recording.
 	frame_skip = frame_skip and false or (screenrecorder.capture_frame() or true)
 
+	render.enable_texture(0, self.original_target, render.BUFFER_COLOR_BIT)
+	render.draw(self.postprocessing_pred)
+	render.disable_texture(0, self.original_target)
+
 	-- Prepare fullscreen viewport.
-	render.set_view(vmath.matrix4())
+	--[[render.set_view(vmath.matrix4())
 	render.disable_state(render.STATE_DEPTH_TEST)
 	render.disable_state(render.STATE_CULL_FACE)
 
@@ -101,7 +105,7 @@ function update(self, dt)
 
 	-- Render UI.
 	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
-	render.draw(self.ui_pred)
+	render.draw(self.ui_pred)--]]
 end
 
 function on_message(self, message_id, message, sender)
