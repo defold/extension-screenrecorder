@@ -45,11 +45,6 @@ local function toggle_rec()
 	--end
 	
 	local params = {
-		--## Android params:
-		render_target = camera.render_target, -- Use texture from specified render target.
-		--x_scale = 1, -- Horizontal scale, default is 1.
-		--y_scale = 1, -- Vertical scale, default is 1.
-		
 		--## iOS params:
 		-- Shows a preview and edit window after a completed recording, default is false. Incompatible with set duration
 		-- and other video params. iOS takes full control over the video.
@@ -61,8 +56,13 @@ local function toggle_rec()
 		-- SCALING_RESIZE_ASPECT_FILL - Preserve aspect ratio of the source, and crop picture to fit destination dimensions.
 		-- Default is SCALING_RESIZE_ASPECT.
 		--scaling = screenrecorder.SCALING_RESIZE_ASPECT,
+
+		--## Not available on iOS: render_target, x_scale, y_scale, fps.
 			
 		--## Shared params:
+		render_target = camera.render_target, -- Use texture from specified render target.
+		--x_scale = 1, -- Horizontal scale, default is 1.
+		--y_scale = 1, -- Vertical scale, default is 1.
 		filename = video_filename,
 		width = 1280, height = 720, -- Video file dimensions.
 		--iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.

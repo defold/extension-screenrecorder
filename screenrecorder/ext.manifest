@@ -7,3 +7,15 @@ platforms:
             flags:      ["-stdlib=libc++"]
             linkFlags:  ["-ObjC"]
             libs:       ["c++"]
+    x86_64-osx:
+        context:
+            flags:      ["-stdlib=libc++"]
+            libs:       ["c++"]
+    x86_64-linux:
+        context:
+            flags:      ["-stdlib=libc++"]
+            libs:       ["c++"]
+    x86_64-win32:
+        context:
+            flags:      ["-stdlib=libc++"]
+            libs:       ["c++"]
