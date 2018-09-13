@@ -309,6 +309,8 @@ static bool init_gl() {
 	glVertexAttribPointer(texcoord_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
 	error = glGetError(); if (error) {dmLogError("glVertexAttribPointer texcoord: %d", error); return false;}
 
+	defold_draw_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
+	defold_read_egl_surface = defold_draw_egl_surface;
 	if (!eglMakeCurrent(egl_display, defold_draw_egl_surface, defold_read_egl_surface, defold_egl_context)) {
 		dmLogError("EGL: Failed to switch to defold surface: %d." , eglGetError());
 		return false;
