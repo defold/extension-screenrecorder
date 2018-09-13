@@ -31,8 +31,7 @@ static EGLDisplay egl_display = EGL_NO_DISPLAY;
 static EGLContext egl_context = EGL_NO_CONTEXT;
 static EGLSurface egl_surface = EGL_NO_SURFACE;
 static EGLContext defold_egl_context = EGL_NO_CONTEXT;
-static EGLSurface defold_read_egl_surface = EGL_NO_SURFACE;
-static EGLSurface defold_draw_egl_surface = EGL_NO_SURFACE;
+static EGLSurface defold_egl_surface = EGL_NO_SURFACE;
 
 static ANativeWindow *encoder_surface = NULL;
 
@@ -225,7 +224,8 @@ static int extension_capture_frame(lua_State *L) {
 			dmLogError("EGL: Failed to swap buffers: %d." , eglGetError());
 		}
 		++frame_index;
-		if (!eglMakeCurrent(egl_display, defold_draw_egl_surface, defold_read_egl_surface, defold_egl_context)) {
+		defold_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
+		if (!eglMakeCurrent(egl_display, defold_egl_surface, defold_egl_surface, defold_egl_context)) {
 			dmLogError("EGL: Failed to switch to defold surface: %d." , eglGetError());
 		}
 	}
@@ -309,9 +309,8 @@ static bool init_gl() {
 	glVertexAttribPointer(texcoord_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
 	error = glGetError(); if (error) {dmLogError("glVertexAttribPointer texcoord: %d", error); return false;}
 
-	defold_draw_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
-	defold_read_egl_surface = defold_draw_egl_surface;
-	if (!eglMakeCurrent(egl_display, defold_draw_egl_surface, defold_read_egl_surface, defold_egl_context)) {
+	defold_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
+	if (!eglMakeCurrent(egl_display, defold_egl_surface, defold_egl_surface, defold_egl_context)) {
 		dmLogError("EGL: Failed to switch to defold surface: %d." , eglGetError());
 		return false;
 	}
@@ -355,14 +354,9 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 		dmLogError("EGL: Failed to get defold egl context: %d.", eglGetError());
 		return false;
 	}
-	defold_read_egl_surface = eglGetCurrentSurface(EGL_READ);
-	if (defold_read_egl_surface == EGL_NO_SURFACE) {
-		dmLogError("EGL: Failed to get defold read egl surface: %d." , eglGetError());
-		return false;
-	}
-	defold_draw_egl_surface = eglGetCurrentSurface(EGL_DRAW);
-	if (defold_draw_egl_surface == EGL_NO_SURFACE) {
-		dmLogError("EGL: Failed to get defold draw egl surface: %d." , eglGetError());
+	defold_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
+	if (defold_egl_surface == EGL_NO_SURFACE) {
+		dmLogError("EGL: Failed to get defold egl surface: %d." , eglGetError());
 		return false;
 	}
 
