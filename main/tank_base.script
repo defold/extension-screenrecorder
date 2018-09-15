@@ -22,7 +22,7 @@ local function toggle_rec()
 	local system_name = sys.get_sys_info().system_name
 	if system_name == 'Darwin' or system_name == 'Linux' or system_name == 'Windows' then
 		video_ext = 'webm'
-		audio_ext = 'ogg'
+		audio_ext = 'webm'
 	end
 	
 	-- Temporary audio track file, saved from resources.
