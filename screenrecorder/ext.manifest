@@ -9,13 +9,13 @@ platforms:
             libs:       ["c++"]
     x86_64-osx:
         context:
-            flags:      ["-stdlib=libc++"]
+            flags:      ["-stdlib=libc++", "-std=c++11"]
             libs:       ["c++"]
     x86_64-linux:
         context:
-            flags:      ["-stdlib=libc++"]
+            flags:      ["-stdlib=libc++", "-std=c++11"]
             libs:       ["c++"]
     x86_64-win32:
         context:
-            flags:      ["-stdlib=libc++"]
+            flags:      ["-stdlib=libc++", "-std=c++11"]
             libs:       ["c++"]

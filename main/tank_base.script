@@ -112,6 +112,8 @@ local function toggle_rec()
 			end
 		end
 	}
+	-- Tell render script to capture less frames.
+	screenrecorder.is_half_fps = not params.fps or params.fps == 30
 	-- Set to Full HD if screen is big enough.
 	-- TODO: determine if device is actually powerful enough.
 	--if camera.width >= 1920 and camera.height >= 1080 then

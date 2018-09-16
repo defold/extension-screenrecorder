@@ -85,8 +85,15 @@ function update(self, dt)
 
 	render.disable_render_target(self.original_target)
 
-	-- Skip every other frame for 30 FPS recording.
-	frame_skip = frame_skip and false or (screenrecorder.capture_frame() or true)
+	if screenrecorder.is_half_fps then
+		-- Skip every other frame for 30 FPS recording.
+		if not frame_skip then
+			screenrecorder.capture_frame()
+		end
+		frame_skip = not frame_skip
+	else
+		screenrecorder.capture_frame()
+	end
 
 	-- Prepare fullscreen viewport.
 	render.set_view(vmath.matrix4())
