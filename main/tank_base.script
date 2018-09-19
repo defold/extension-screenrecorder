@@ -58,6 +58,9 @@ local function toggle_rec()
 		--scaling = screenrecorder.SCALING_RESIZE_ASPECT,
 
 		--## Not available on iOS: render_target, x_scale, y_scale, fps.
+
+		--## Desktop params:
+		--async_encoding = true, -- Experimental: if true use a separate encoding thread. Might improve performance, might make it worse. Default is false.
 			
 		--## Shared params:
 		render_target = camera.render_target, -- Use texture from specified render target.
@@ -112,7 +115,7 @@ local function toggle_rec()
 			end
 		end
 	}
-	-- Tell render script to capture less frames.
+	-- Tell render script to capture less frames to match fps.
 	screenrecorder.is_half_fps = not params.fps or params.fps == 30
 	-- Set to Full HD if screen is big enough.
 	-- TODO: determine if device is actually powerful enough.
