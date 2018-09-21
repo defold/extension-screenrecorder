@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)// || defined(DM_PLATFORM_WINDOWS)
 
 #define THREAD_IMPLEMENTATION
 #include <thread.h>
