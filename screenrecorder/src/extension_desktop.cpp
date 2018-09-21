@@ -83,26 +83,9 @@ static int extension_get_info(lua_State *L) {
 	#endif
 	lua_settable(L, -3);
 
-	if (version[0] < '3') {
-		lua_pushstring(L, "extensions");
-		lua_pushstring(L, (const char*)glGetString(GL_EXTENSIONS));
-		lua_settable(L, -3);
-	} else {
-		lua_pushstring(L, "extensions");
-		#ifdef GL_NUM_EXTENSIONS
-			int num_extensions = 0;
-			glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-			lua_createtable(L, num_extensions, 0);
-			for (int i = 0; i < num_extensions; ++i) {
-				lua_pushnumber(L, i);
-				lua_pushstring(L, (const char*)glGetStringi(GL_EXTENSIONS, i));
-				lua_settable(L, -3);
-			}
-		#else
-			lua_pushstring(L, "");
-		#endif
-		lua_settable(L, -3);
-	}
+	lua_pushstring(L, "extensions");
+	lua_pushstring(L, (const char*)glGetString(GL_EXTENSIONS));
+	lua_settable(L, -3);
 
 	return 1;
 }

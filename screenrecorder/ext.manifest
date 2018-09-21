@@ -16,5 +16,4 @@ platforms:
             libs:       ["c++"]
     x86_64-win32:
         context:
-            flags:      ["-std=c++11"]
-            use-clang:  true
+            flags:      ["-std=c++14"]

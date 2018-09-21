@@ -38,3 +38,6 @@ manifest = /AndroidManifest.xml
 [osx]
 bundle_identifier = com.spiralcodestudio.test1
 
+[native_extension]
+app_manifest = /clang.appmanifest
+

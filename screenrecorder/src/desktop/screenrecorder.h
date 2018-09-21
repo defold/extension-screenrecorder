@@ -9,7 +9,9 @@
 #else
 	#ifdef _WIN32
 		#include <Windows.h>
+		#define GL_GLEXT_PROTOTYPES
 		#include <gl/GL.h>
+		#include <gl/glext.h>
 	#else
 		#include <GL/gl2.h>
 		#include <GL/gl2ext.h>
