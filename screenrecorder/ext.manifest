@@ -4,18 +4,17 @@ platforms:
     arm64-ios:
         context:
             frameworks: ["AVFoundation", "ReplayKit", "CoreMedia"]
-            flags:      ["-stdlib=libc++"]
             linkFlags:  ["-ObjC"]
             libs:       ["c++"]
     x86_64-osx:
         context:
-            flags:      ["-stdlib=libc++", "-std=c++11"]
+            flags:      ["-std=c++11"]
             libs:       ["c++"]
     x86_64-linux:
         context:
-            flags:      ["-stdlib=libc++", "-std=c++11"]
+            flags:      ["-std=c++11"]
             libs:       ["c++"]
     x86_64-win32:
         context:
-            flags:      ["-stdlib=libc++", "-std=c++11"]
-            libs:       ["c++"]
+            flags:      ["-std=c++11"]
+            use-clang:  true
