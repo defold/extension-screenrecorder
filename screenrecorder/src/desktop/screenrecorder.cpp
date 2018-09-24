@@ -5,6 +5,48 @@
 #include "screenrecorder.h"
 #include "utils.h"
 
+#if defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
+	#if defined(DM_PLATFORM_WINDOWS)
+		static PFNGLACTIVETEXTUREPROC glActiveTexture = NULL;
+	#endif
+	static PFNGLISPROGRAMPROC glIsProgram = NULL;
+	static PFNGLDELETEPROGRAMPROC glDeleteProgram = NULL;
+	static PFNGLISBUFFERPROC glIsBuffer = NULL;
+	static PFNGLDELETEBUFFERSPROC glDeleteBuffers = NULL;
+	static PFNGLCREATESHADERPROC glCreateShader = NULL;
+	static PFNGLSHADERSOURCEPROC glShaderSource = NULL;
+	static PFNGLCOMPILESHADERPROC glCompileShader = NULL;
+	static PFNGLGETSHADERIVPROC glGetShaderiv = NULL;
+	static PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = NULL;
+	static PFNGLCREATEPROGRAMPROC glCreateProgram = NULL;
+	static PFNGLATTACHSHADERPROC glAttachShader = NULL;
+	static PFNGLLINKPROGRAMPROC glLinkProgram = NULL;
+	static PFNGLGETPROGRAMIVPROC glGetProgramiv = NULL;
+	static PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = NULL;
+	static PFNGLDELETESHADERPROC glDeleteShader = NULL;
+	static PFNGLGENBUFFERSPROC glGenBuffers = NULL;
+	static PFNGLBINDBUFFERPROC glBindBuffer = NULL;
+	static PFNGLBUFFERDATAPROC glBufferData = NULL;
+	static PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = NULL;
+	static PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation = NULL;
+	static PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer = NULL;
+	static PFNGLISFRAMEBUFFERPROC glIsFramebuffer = NULL;
+	static PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers = NULL;
+	static PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers = NULL;
+	static PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer = NULL;
+	static PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture = NULL;
+	static PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus = NULL;
+	static PFNGLDRAWBUFFERSPROC glDrawBuffers = NULL;
+	static PFNGLUSEPROGRAMPROC glUseProgram = NULL;
+	static PFNGLUNIFORM1IPROC glUniform1i = NULL;
+	static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = NULL;
+	static PFNGLUNIFORM2FPROC glUniform2f = NULL;
+	static PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray = NULL;
+	static PFNGLGETBUFFERPARAMETERIVPROC glGetBufferParameteriv = NULL;
+	static PFNGLUNMAPBUFFERPROC glUnmapBuffer = NULL;
+	static PFNGLMAPBUFFERPROC glMapBuffer = NULL;
+#endif
+
 static const char *vertex_shader_source = "#version 110\n"
 	"attribute vec2 position;"
 	"attribute vec2 texcoord;"
@@ -133,6 +175,47 @@ ScreenRecorder::ScreenRecorder() :
 	should_encoding_thread_exit(false),
 	is_enconding_thread_available(true),
 	capture_params() {
+		#if defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
+			#if defined(DM_PLATFORM_WINDOWS)
+				GET_PROC_ADDRESS(glActiveTexture, "glActiveTexture", PFNGLACTIVETEXTUREPROC)
+			#endif
+			GET_PROC_ADDRESS(glIsProgram, "glIsProgram", PFNGLISPROGRAMPROC)
+			GET_PROC_ADDRESS(glDeleteProgram, "glDeleteProgram", PFNGLDELETEPROGRAMPROC)
+			GET_PROC_ADDRESS(glIsBuffer, "glIsBuffer", PFNGLISBUFFERPROC)
+			GET_PROC_ADDRESS(glDeleteBuffers, "glDeleteBuffers", PFNGLDELETEBUFFERSPROC)
+			GET_PROC_ADDRESS(glCreateShader, "glCreateShader", PFNGLCREATESHADERPROC)
+			GET_PROC_ADDRESS(glShaderSource, "glShaderSource", PFNGLSHADERSOURCEPROC)
+			GET_PROC_ADDRESS(glCompileShader, "glCompileShader", PFNGLCOMPILESHADERPROC)
+			GET_PROC_ADDRESS(glGetShaderiv, "glGetShaderiv", PFNGLGETSHADERIVPROC)
+			GET_PROC_ADDRESS(glGetShaderInfoLog, "glGetShaderInfoLog", PFNGLGETSHADERINFOLOGPROC)
+			GET_PROC_ADDRESS(glCreateProgram, "glCreateProgram", PFNGLCREATEPROGRAMPROC)
+			GET_PROC_ADDRESS(glAttachShader, "glAttachShader", PFNGLATTACHSHADERPROC)
+			GET_PROC_ADDRESS(glLinkProgram, "glLinkProgram", PFNGLLINKPROGRAMPROC)
+			GET_PROC_ADDRESS(glGetProgramiv, "glGetProgramiv", PFNGLGETPROGRAMIVPROC)
+			GET_PROC_ADDRESS(glGetProgramInfoLog, "glGetProgramInfoLog", PFNGLGETPROGRAMINFOLOGPROC)
+			GET_PROC_ADDRESS(glDeleteShader, "glDeleteShader", PFNGLDELETESHADERPROC)
+			GET_PROC_ADDRESS(glGenBuffers, "glGenBuffers", PFNGLGENBUFFERSPROC)
+			GET_PROC_ADDRESS(glBindBuffer, "glBindBuffer", PFNGLBINDBUFFERPROC)
+			GET_PROC_ADDRESS(glBufferData, "glBufferData", PFNGLBUFFERDATAPROC)
+			GET_PROC_ADDRESS(glGetUniformLocation, "glGetUniformLocation", PFNGLGETUNIFORMLOCATIONPROC)
+			GET_PROC_ADDRESS(glGetAttribLocation, "glGetAttribLocation", PFNGLGETATTRIBLOCATIONPROC)
+			GET_PROC_ADDRESS(glVertexAttribPointer, "glVertexAttribPointer", PFNGLVERTEXATTRIBPOINTERPROC)
+			GET_PROC_ADDRESS(glIsFramebuffer, "glIsFramebuffer", PFNGLISFRAMEBUFFERPROC)
+			GET_PROC_ADDRESS(glDeleteFramebuffers, "glDeleteFramebuffers", PFNGLDELETEFRAMEBUFFERSPROC)
+			GET_PROC_ADDRESS(glGenFramebuffers, "glGenFramebuffers", PFNGLGENFRAMEBUFFERSPROC)
+			GET_PROC_ADDRESS(glBindFramebuffer, "glBindFramebuffer", PFNGLBINDFRAMEBUFFERPROC)
+			GET_PROC_ADDRESS(glFramebufferTexture, "glFramebufferTexture", PFNGLFRAMEBUFFERTEXTUREPROC)
+			GET_PROC_ADDRESS(glCheckFramebufferStatus, "glCheckFramebufferStatus", PFNGLCHECKFRAMEBUFFERSTATUSPROC)
+			GET_PROC_ADDRESS(glDrawBuffers, "glDrawBuffers", PFNGLDRAWBUFFERSPROC)
+			GET_PROC_ADDRESS(glUseProgram, "glUseProgram", PFNGLUSEPROGRAMPROC)
+			GET_PROC_ADDRESS(glUniform1i, "glUniform1i", PFNGLUNIFORM1IPROC)
+			GET_PROC_ADDRESS(glEnableVertexAttribArray, "glEnableVertexAttribArray", PFNGLENABLEVERTEXATTRIBARRAYPROC)
+			GET_PROC_ADDRESS(glUniform2f, "glUniform2f", PFNGLUNIFORM2FPROC)
+			GET_PROC_ADDRESS(glDisableVertexAttribArray, "glDisableVertexAttribArray", PFNGLDISABLEVERTEXATTRIBARRAYPROC)
+			GET_PROC_ADDRESS(glGetBufferParameteriv, "glGetBufferParameteriv", PFNGLGETBUFFERPARAMETERIVPROC)
+			GET_PROC_ADDRESS(glUnmapBuffer, "glUnmapBuffer", PFNGLUNMAPBUFFERPROC)
+			GET_PROC_ADDRESS(glMapBuffer, "glMapBuffer", PFNGLMAPBUFFERPROC)
+		#endif
 	}
 
 ScreenRecorder::~ScreenRecorder() {
@@ -175,7 +258,7 @@ bool ScreenRecorder::init() {
 		dmLogError("Failed to compile vertex shader");
 		char buffer[512];
 		glGetShaderInfoLog(vertex_shader, 512, NULL, buffer);
-		dmLogError(buffer);
+		dmLogError("%s", buffer);
 		return false;
 	}
 
@@ -188,7 +271,7 @@ bool ScreenRecorder::init() {
 		dmLogError("Failed to compile fragment shader");
 		char buffer[512];
 		glGetShaderInfoLog(fragment_shader, 512, NULL, buffer);
-		dmLogError(buffer);
+		dmLogError("%s", buffer);
 		return false;
 	}
 
@@ -205,7 +288,7 @@ bool ScreenRecorder::init() {
 		dmLogError("Failed to link shader");
 		char buffer[512];
 		glGetProgramInfoLog(shader_program, 512, NULL, buffer);
-		dmLogError(buffer);
+		dmLogError("%s", buffer);
 		return false;
 	}
 
@@ -340,7 +423,7 @@ bool ScreenRecorder::start() {
 		double duration = *capture_params.duration + *capture_params.iframe; // Increase duration by keyframe interval.
 		size_t buffer_size = 1.5 * duration * (*capture_params.bitrate / 8); // Allocate enough memory for frames, plus a bit more for bitrate fluctuation.
 		if (!circular_buffer->init(buffer_size, duration * *capture_params.fps)) {
-			dmLogError("Failed to initialize circular encoder, requested %lld bytes.", buffer_size);
+			dmLogError("Failed to initialize circular encoder, requested %zu bytes.", buffer_size);
 			return false;
 		}
 	}

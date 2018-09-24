@@ -13,7 +13,6 @@ platforms:
     x86_64-linux:
         context:
             flags:      ["-std=c++11"]
-            libs:       ["c++"]
     x86_64-win32:
         context:
             flags:      ["-std=c++14"]

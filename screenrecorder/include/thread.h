@@ -65,7 +65,13 @@ void thread_timer_init( thread_timer_t* timer );
 void thread_timer_term( thread_timer_t* timer );
 void thread_timer_wait( thread_timer_t* timer, THREAD_U64 nanoseconds );
 
-typedef void* thread_tls_t;
+#if defined( _WIN32 )
+    typedef unsigned long long thread_tls_t;
+#elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    typedef unsigned long thread_tls_t;
+#else
+    typedef void* thread_tls_t;
+#endif
 thread_tls_t thread_tls_create( void );
 void thread_tls_destroy( thread_tls_t tls );
 void thread_tls_set( thread_tls_t tls, void* value );
@@ -612,6 +618,7 @@ struct thread_queue_t
     
 #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
 
+    #include <stdint.h>
     #include <pthread.h>
     #include <errno.h>
     #include <sys/time.h>

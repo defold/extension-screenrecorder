@@ -3,20 +3,29 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#ifdef __APPLE__
+#if defined(DM_PLATFORM_OSX)
 	#include <OpenGL/gl3.h>
 	#include <OpenGL/gl3ext.h>
-#else
-	#ifdef _WIN32
-		#include <Windows.h>
-		#define GL_GLEXT_PROTOTYPES
-		#include <gl/GL.h>
-		#include <gl/glext.h>
-	#else
-		#include <GL/gl2.h>
-		#include <GL/gl2ext.h>
-	#endif
+#elif defined(DM_PLATFORM_LINUX)
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+
+	#define GET_PROC_ADDRESS(function, name, type) function = (type)glXGetProcAddress((const GLubyte *)name);\
+	if (function == 0x0) function = (type)glXGetProcAddress((const GLubyte *)name "ARB");\
+	if (function == 0x0) function = (type)glXGetProcAddress((const GLubyte *)name "EXT");\
+	if (function == 0x0) dmLogError("Could not find gl function %s.", name);
+#elif defined(DM_PLATFORM_WINDOWS)
+	#include <Windows.h>
+	#include <gl/GL.h>
+	#include <gl/glext.h>
+	#include <wingdi.h>
+
+	#define GET_PROC_ADDRESS(function, name, type) function = (type)wglGetProcAddress(name);\
+	if (function == 0x0) function = (type)wglGetProcAddress(name "ARB");\
+	if (function == 0x0) function = (type)wglGetProcAddress(name "EXT");\
+	if (function == 0x0) dmLogError("Could not find gl function %s.", name);
 #endif
+
 #include <vpx/vpx_encoder.h>
 #include <vpx/vp8cx.h>
 #include <thread.h>
