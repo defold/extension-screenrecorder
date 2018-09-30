@@ -1,6 +1,7 @@
 local camera = require('libs.camera')
 
 local frame_skip = false
+local rec_blink_i = 0
 
 local function next_pow2(value)
 	local result = 1
@@ -30,8 +31,9 @@ function init(self)
 	self.is_perspective_view = false
 
 	camera.width, camera.height = render.get_window_width(), render.get_window_height()
-	if sys.get_sys_info().system_name == 'iPhone OS' then
-		-- Render target has to be power of 2 size on iOS
+	local system_name = sys.get_sys_info().system_name
+	if system_name == 'iPhone OS' or system_name == 'Android' then
+		-- Render target has to be power of 2 size on iOS and Android.
 		camera.width_p2, camera.height_p2 = next_pow2(camera.width), next_pow2(camera.height)
 	else
 		camera.width_p2, camera.height_p2 = camera.width, camera.height
@@ -85,6 +87,8 @@ function update(self, dt)
 
 	render.disable_render_target(self.original_target)
 
+	render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+	
 	if screenrecorder.is_half_fps then
 		-- Skip every other frame for 30 FPS recording.
 		if not frame_skip then
@@ -97,8 +101,6 @@ function update(self, dt)
 
 	-- Prepare fullscreen viewport.
 	render.set_view(vmath.matrix4())
-	render.disable_state(render.STATE_DEPTH_TEST)
-	render.disable_state(render.STATE_CULL_FACE)
 
 	-- Render original target.
 	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
@@ -107,8 +109,14 @@ function update(self, dt)
 	render.disable_texture(0, self.original_target)
 
 	-- Render UI.
-	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
-	render.draw(self.ui_pred)
+	-- Blink REC button during recording.
+	if not screenrecorder.is_recording() or rec_blink_i > 30 then
+		render.enable_state(render.STATE_BLEND)
+		render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+		render.draw(self.ui_pred)
+		render.disable_state(render.STATE_BLEND)
+	end
+	rec_blink_i = (rec_blink_i + 1) % 60
 end
 
 function on_message(self, message_id, message, sender)

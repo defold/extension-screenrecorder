@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)// || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
 
 #include "webmwriter.h"
 #include "utils.h"
@@ -55,16 +55,16 @@ bool WebmWriter::write_frame(uint8_t *data, size_t size, int64_t timestamp, bool
 	return segment->AddFrame(data, size, 1, timestamp * frame_ns, is_keyframe);
 }
 
-bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_filename, const char *filename) {
+bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_filename, const char *filename, char *error_message) {
 	// MUXER
 	mkvmuxer::MkvWriter mux_writer;
 	if (!mux_writer.Open(filename)) {
-		dmLogError("Filename is invalid or error while opening.");
+		ERROR_MESSAGE("Filename is invalid or error while opening.");
 		return false;
 	}
 	mkvmuxer::Segment muxer_segment;
 	if (!muxer_segment.Init(&mux_writer)) {
-		dmLogError("Could not initialize muxer segment!");
+		ERROR_MESSAGE("Could not initialize muxer segment!");
 		return false;
 	}
 	muxer_segment.AccurateClusterDuration(false);
@@ -76,23 +76,23 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	// VIDEO READER
 	mkvparser::MkvReader video_reader;
 	if (video_reader.Open(video_filename)) {
-		dmLogError("Video filename is invalid or error while opening.");
+		ERROR_MESSAGE("Video filename is invalid or error while opening.");
 		return false;
 	}
 	mkvparser::Segment* video_segment;
 	long long ret = mkvparser::Segment::CreateInstance(&video_reader, 0, video_segment);
 	if (ret) {
-		dmLogError("Segment::CreateInstance() failed.");
+		ERROR_MESSAGE("Segment::CreateInstance() failed.");
 		return false;
 	}
 	ret = video_segment->Load();
 	if (ret < 0) {
-		dmLogError("Video Segment::Load() failed.");
+		ERROR_MESSAGE("Video Segment::Load() failed.");
 		return false;
 	}
 	const mkvparser::SegmentInfo *const video_segment_info = video_segment->GetInfo();
 	if (video_segment_info == NULL) {
-		dmLogError("Video Segment::GetInfo() failed.");
+		ERROR_MESSAGE("Video Segment::GetInfo() failed.");
 		return false;
 	}
 	const long long time_code_scale = video_segment_info->GetTimeCodeScale();
@@ -101,12 +101,12 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	// Set Tracks element attributes
 	const mkvparser::Tracks* const video_tracks = video_segment->GetTracks();
 	if (video_tracks->GetTracksCount() == 0) {
-		dmLogError("Video file has no tracks.");
+		ERROR_MESSAGE("Video file has no tracks.");
 		return false;
 	}
 	const mkvparser::Track* const video_track = video_tracks->GetTrackByIndex(0);
 	if (video_track->GetType() != mkvparser::Track::kVideo) {
-		dmLogError("Video file has no video track.");
+		ERROR_MESSAGE("Video file has no video track.");
 		return false;
 	}
 	// Get the video track from the parser
@@ -114,49 +114,48 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	// Add the video track to the muxer
 	uint64_t video_track_id = muxer_segment.AddVideoTrack(p_video_track->GetWidth(), p_video_track->GetHeight(), 0);
 	if (!video_track_id) {
-		dmLogError("Could not add video track.");
+		ERROR_MESSAGE("Could not add video track.");
 		return false;
 	}
 	mkvmuxer::VideoTrack* const muxer_video_track = static_cast<mkvmuxer::VideoTrack*>(muxer_segment.GetTrackByNumber(video_track_id));
 	if (!muxer_video_track) {
-		dmLogError("Could not get video track.");
+		ERROR_MESSAGE("Could not get video track.");
 		return false;
 	}
 	muxer_video_track->set_codec_id(p_video_track->GetCodecId());
 	const double rate = p_video_track->GetFrameRate();
 	if (rate > 0.0) {
 		muxer_video_track->set_frame_rate(rate);
-		dmLogInfo("Frame rate: %f", rate);
 		frame_ns = 1000000000ll / rate;
 	}
 
 	// AUDIO READER
 	mkvparser::MkvReader audio_reader;
 	if (audio_reader.Open(audio_filename)) {
-		dmLogError("Audio filename is invalid or error while opening.");
+		ERROR_MESSAGE("Audio filename is invalid or error while opening.");
 		return false;
 	}
 	mkvparser::Segment *audio_segment;
 	ret = mkvparser::Segment::CreateInstance(&audio_reader, 0, audio_segment);
 	if (ret) {
-		dmLogError("Audio Segment::CreateInstance() failed.");
+		ERROR_MESSAGE("Audio Segment::CreateInstance() failed.");
 		return false;
 	}
 	ret = audio_segment->Load();
 	if (ret < 0) {
-		dmLogError("Audio segment load failed.");
+		ERROR_MESSAGE("Audio segment load failed.");
 		return false;
 	}
 
 	// Set Tracks element attributes
 	const mkvparser::Tracks *const audio_tracks = audio_segment->GetTracks();
 	if (audio_tracks->GetTracksCount() == 0) {
-		dmLogError("Audio file has no tracks.");
+		ERROR_MESSAGE("Audio file has no tracks.");
 		return false;
 	}
 	const mkvparser::Track *const audio_track = audio_tracks->GetTrackByIndex(0);
 	if (audio_track->GetType() != mkvparser::Track::kAudio) {
-		dmLogError("Audio file has no audio track.");
+		ERROR_MESSAGE("Audio file has no audio track.");
 		return false;
 	}
 	// Get the audio track from the parser
@@ -164,12 +163,12 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	// Add the audio track to the muxer
 	uint64_t audio_track_id = muxer_segment.AddAudioTrack(p_audio_track->GetSamplingRate(), p_audio_track->GetChannels(), 0);
 	if (!audio_track_id) {
-		dmLogError("Could not add audio track.");
+		ERROR_MESSAGE("Could not add audio track.");
 		return false;
 	}
 	mkvmuxer::AudioTrack *const muxer_audio_track = static_cast<mkvmuxer::AudioTrack*>(muxer_segment.GetTrackByNumber(audio_track_id));
 	if (!muxer_audio_track) {
-		dmLogError("Could not get audio track.");
+		ERROR_MESSAGE("Could not get audio track.");
 		return false;
 	}
 	muxer_audio_track->set_codec_id(p_audio_track->GetCodecId());
@@ -181,7 +180,8 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	const unsigned char *const private_data = p_audio_track->GetCodecPrivate(private_size);
 	if (private_size > 0) {
 		if (!muxer_audio_track->SetCodecPrivate(private_data, private_size)) {
-			dmLogError("Could not add audio private data.");
+			ERROR_MESSAGE("Could not add audio private data.");
+			return false;
 		}
 	}
 
@@ -240,7 +240,7 @@ bool WebmWriter::mux_audio_video(const char *audio_filename, const char *video_f
 	muxer_segment.set_duration(input_duration);
 
 	if (!muxer_segment.Finalize()) {
-		dmLogError("Finalization of segment failed.");
+		ERROR_MESSAGE("Finalization of segment failed.");
 		return false;
 	}
 

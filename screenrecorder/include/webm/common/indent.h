@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "../mkvmuxer/mkvmuxertypes.h"
+#include "mkvmuxer/mkvmuxertypes.h"
 
 namespace libwebm {
 

@@ -78,10 +78,10 @@ public:
 	CaptureParams capture_params;
 	ScreenRecorder();
 	~ScreenRecorder();
-	bool init();
-	bool start();
-	void stop();
-	void capture_frame();
+	bool init(char *error_message);
+	bool start(char *error_message);
+	bool stop(char *error_message);
+	bool capture_frame(char *error_message);
 	bool encode_frame(bool is_flush);
 };
 

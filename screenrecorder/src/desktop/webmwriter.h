@@ -20,7 +20,7 @@ public:
 	bool open(const char *filename, int width, int height, int fps);
 	void close();
 	bool write_frame(uint8_t *data, size_t size, int64_t timestamp, bool is_keyframe);
-	bool mux_audio_video(const char *audio_filename, const char *video_filename, const char *filename);
+	bool mux_audio_video(const char *audio_filename, const char *video_filename, const char *filename, char *error_message);
 };
 
 #endif

@@ -11,7 +11,7 @@ function init(self)
 
 	local rec_offset = camera.width * 0.1
 	local rec_size = camera.width * 0.05
-	go.set_position(vmath.vector3(rec_offset, camera.height - rec_offset, 0), '/rec_button')
+	go.set_position(vmath.vector3(rec_offset, camera.height - rec_offset, 1), '/rec_button')
 	go.set_scale(vmath.vector3(rec_size, rec_size, 1), '/rec_button')
 
 	go.set_position(vmath.vector3(camera.width_p2 / 2, camera.height_p2 / 2, 0), '/postprocessing')

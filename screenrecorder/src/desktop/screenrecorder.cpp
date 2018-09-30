@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)// || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
 
 #include <string>
 
@@ -34,7 +34,7 @@
 	static PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers = NULL;
 	static PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers = NULL;
 	static PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer = NULL;
-	static PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture = NULL;
+	static PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D = NULL;
 	static PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus = NULL;
 	static PFNGLDRAWBUFFERSPROC glDrawBuffers = NULL;
 	static PFNGLUSEPROGRAMPROC glUseProgram = NULL;
@@ -204,7 +204,7 @@ ScreenRecorder::ScreenRecorder() :
 			GET_PROC_ADDRESS(glDeleteFramebuffers, "glDeleteFramebuffers", PFNGLDELETEFRAMEBUFFERSPROC)
 			GET_PROC_ADDRESS(glGenFramebuffers, "glGenFramebuffers", PFNGLGENFRAMEBUFFERSPROC)
 			GET_PROC_ADDRESS(glBindFramebuffer, "glBindFramebuffer", PFNGLBINDFRAMEBUFFERPROC)
-			GET_PROC_ADDRESS(glFramebufferTexture, "glFramebufferTexture", PFNGLFRAMEBUFFERTEXTUREPROC)
+			GET_PROC_ADDRESS(glFramebufferTexture2D, "glFramebufferTexture2D", PFNGLFRAMEBUFFERTEXTURE2DPROC)
 			GET_PROC_ADDRESS(glCheckFramebufferStatus, "glCheckFramebufferStatus", PFNGLCHECKFRAMEBUFFERSTATUSPROC)
 			GET_PROC_ADDRESS(glDrawBuffers, "glDrawBuffers", PFNGLDRAWBUFFERSPROC)
 			GET_PROC_ADDRESS(glUseProgram, "glUseProgram", PFNGLUSEPROGRAMPROC)
@@ -223,42 +223,39 @@ ScreenRecorder::~ScreenRecorder() {
 	if (glIsProgram(shader_program)) {
 		glDeleteProgram(shader_program);
 		shader_program = 0;
-		GLenum error = glGetError(); if (error) dmLogError("glDeleteProgram: %d", error);
+		GLenum error = glGetError(); if (error) dmLogError("glDeleteProgram: %#04X", error);
 	}
 	if (glIsBuffer(vertex_buffer)) {
 		glDeleteBuffers(1, &vertex_buffer);
 		vertex_buffer = 0;
-		GLenum error = glGetError(); if (error) dmLogError("glDeleteBuffers: %d", error);
+		GLenum error = glGetError(); if (error) dmLogError("glDeleteBuffers: %#04X", error);
 	}
 	if (encoding_thread != NULL) {
-		dmLogDebug("Finishing encoding thread.");
 		// Finish encoding thread.
 		should_encoding_thread_exit = true;
 		thread_signal_raise(&encoding_signal);
 		thread_join(encoding_thread);
 		thread_destroy(encoding_thread);
 		thread_signal_term(&encoding_signal);
-		dmLogDebug("Finished encoding thread.");
 	}
 }
 
-bool ScreenRecorder::init() {
+bool ScreenRecorder::init(char *error_message) {
 	if (is_initialized) {
 		return true;
 	}
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	GLenum error = glGetError(); if (error) {dmLogError("glCreateShader: %d", error); return false;}
+	GLenum error = glGetError(); if (error) {ERROR_MESSAGE("glCreateShader: %#04X", error); return false;}
 	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-	error = glGetError(); if (error) {dmLogError("glShaderSource: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glShaderSource: %#04X", error); return false;}
 	glCompileShader(vertex_shader);
 
 	GLint status;
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
 	if (!status) {
-		dmLogError("Failed to compile vertex shader");
 		char buffer[512];
 		glGetShaderInfoLog(vertex_shader, 512, NULL, buffer);
-		dmLogError("%s", buffer);
+		ERROR_MESSAGE("Failed to compile vertex shader:\n%s", buffer);
 		return false;
 	}
 
@@ -268,62 +265,60 @@ bool ScreenRecorder::init() {
 
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &status);
 	if (!status) {
-		dmLogError("Failed to compile fragment shader");
 		char buffer[512];
 		glGetShaderInfoLog(fragment_shader, 512, NULL, buffer);
-		dmLogError("%s", buffer);
+		ERROR_MESSAGE("Failed to compile fragment shader:\n%s", buffer);
 		return false;
 	}
 
 	shader_program = glCreateProgram();
-	error = glGetError(); if (error) {dmLogError("glCreateProgram: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glCreateProgram: %#04X", error); return false;}
 	glAttachShader(shader_program, vertex_shader);
-	error = glGetError(); if (error) {dmLogError("glAttachShader v: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glAttachShader v: %#04X", error); return false;}
 	glAttachShader(shader_program, fragment_shader);
-	error = glGetError(); if (error) {dmLogError("glAttachShader f: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glAttachShader f: %#04X", error); return false;}
 	glLinkProgram(shader_program);
-	error = glGetError(); if (error) {dmLogError("glLinkProgram: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glLinkProgram: %#04X", error); return false;}
 	glGetProgramiv(shader_program, GL_LINK_STATUS, &status);
 	if (!status) {
-		dmLogError("Failed to link shader");
 		char buffer[512];
 		glGetProgramInfoLog(shader_program, 512, NULL, buffer);
-		dmLogError("%s", buffer);
+		ERROR_MESSAGE("Failed to link shader:\n%s", buffer);
 		return false;
 	}
 
 	glDeleteShader(vertex_shader);
-	error = glGetError(); if (error) {dmLogError("glDeleteShader v: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDeleteShader v: %#04X", error); return false;}
 	glDeleteShader(fragment_shader);
-	error = glGetError(); if (error) {dmLogError("glDeleteShader f: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDeleteShader f: %#04X", error); return false;}
 
 	glGenBuffers(1, &vertex_buffer);
-	error = glGetError(); if (error) {dmLogError("glGenBuffers: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGenBuffers: %#04X", error); return false;}
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	error = glGetError(); if (error) {dmLogError("glBindBuffer: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer: %#04X", error); return false;}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_model), quad_model, GL_STATIC_DRAW);
-	error = glGetError(); if (error) {dmLogError("glBufferData: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBufferData: %#04X", error); return false;}
 
 	tex_uniform = glGetUniformLocation(shader_program, "tex0");
-	error = glGetError(); if (error) {dmLogError("glGetUniformLocation position: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGetUniformLocation position: %#04X", error); return false;}
 
 	scale_uniform = glGetUniformLocation(shader_program, "scale");
-	error = glGetError(); if (error) dmLogError("glGetUniformLocation scale: %d", error);
+	error = glGetError(); if (error) ERROR_MESSAGE("glGetUniformLocation scale: %#04X", error);
 
 	resolution_uniform = glGetUniformLocation(shader_program, "resolution");
-	error = glGetError(); if (error) dmLogError("glGetUniformLocation resolution: %d", error);
+	error = glGetError(); if (error) ERROR_MESSAGE("glGetUniformLocation resolution: %#04X", error);
 
 	// position attribute.
 	position_attrib = glGetAttribLocation(shader_program, "position");
-	error = glGetError(); if (error) {dmLogError("glGetAttribLocation position: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGetAttribLocation position: %#04X", error); return false;}
 	glVertexAttribPointer(position_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-	error = glGetError(); if (error) {dmLogError("glVertexAttribPointer position: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glVertexAttribPointer position: %#04X", error); return false;}
 
 	// texcoord attribute.
 	texcoord_attrib = glGetAttribLocation(shader_program, "texcoord");
-	error = glGetError(); if (error) {dmLogError("glGetAttribLocation texcoord: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGetAttribLocation texcoord: %#04X", error); return false;}
 	glVertexAttribPointer(texcoord_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-	error = glGetError(); if (error) {dmLogError("glVertexAttribPointer texcoord: %d", error); return false;}
+	error = glGetError(); if (error) {ERROR_MESSAGE("glVertexAttribPointer texcoord: %#04X", error); return false;}
 
 	is_initialized = true;
 
@@ -333,7 +328,7 @@ bool ScreenRecorder::init() {
 	return true;
 }
 
-bool ScreenRecorder::start() {
+bool ScreenRecorder::start(char *error_message) {
 	frame_count = 0;
 	int width = *capture_params.width;
 	int height = *capture_params.height;
@@ -346,52 +341,52 @@ bool ScreenRecorder::start() {
 	}
 
 	glGenFramebuffers(1, &fbo);
-	GLenum error = glGetError(); if (error) dmLogError("glGenFramebuffers fbo: %d", error);
+	GLenum error = glGetError(); if (error) {ERROR_MESSAGE("glGenFramebuffers fbo: %#04X", error); return false;}
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	error = glGetError(); if (error) dmLogError("glBindFramebuffer fbo: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer fbo: %#04X", error); return false;}
 	glGenTextures(1, &scaled_texture);
-	error = glGetError(); if (error) dmLogError("glGenTextures scaled_texture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGenTextures scaled_texture: %#04X", error); return false;}
 	glBindTexture(GL_TEXTURE_2D, scaled_texture);
-	error = glGetError(); if (error) dmLogError("glBindTexture scaled_texture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindTexture scaled_texture: %#04X", error); return false;}
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	error = glGetError(); if (error) dmLogError("glTexImage2D scaled_texture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glTexImage2D scaled_texture: %#04X", error); return false;}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	error = glGetError(); if (error) dmLogError("glTexParameteri scaled_texture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glTexParameteri scaled_texture: %#04X", error); return false;}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	error = glGetError(); if (error) dmLogError("glTexParameteri scaled_texture: %d", error);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, scaled_texture, 0);
-	error = glGetError(); if (error) dmLogError("glFramebufferTexture fbo scaled_texture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glTexParameteri scaled_texture: %#04X", error); return false;}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scaled_texture, 0);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glFramebufferTexture2D fbo scaled_texture: %#04X", error); return false;}
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) dmLogError("glCheckFramebufferStatus: %d", error);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {ERROR_MESSAGE("glCheckFramebufferStatus: %#04X", error); return false;}
 	GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, draw_buffers);
-	error = glGetError(); if (error) dmLogError("glDrawBuffers: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDrawBuffers: %#04X", error); return false;}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	error = glGetError(); if (error) dmLogError("glBindTexture 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindTexture 0: %#04X", error); return false;}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	error = glGetError(); if (error) dmLogError("glBindFramebuffer 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer 0: %#04X", error); return false;}
 
 	pbo_index = 0;
 	is_pbo_full = false;
 	glGenBuffers(PBO_COUNT, pbo);
-	error = glGetError(); if (error) dmLogError("glGenBuffers pbo: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glGenBuffers pbo: %#04X", error); return false;}
 	for (int i = 0; i < PBO_COUNT; ++i) {
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[i]);
-		error = glGetError(); if (error) dmLogError("glBindBuffer pbo[%d]: %d", i, error);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer pbo[%d]: %#04X", i, error); return false;}
 		glBufferData(GL_PIXEL_PACK_BUFFER, width * height * 3, NULL, GL_STREAM_READ);
-		error = glGetError(); if (error) dmLogError("glBufferData %d: %d", i, error);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glBufferData %d: %#04X", i, error); return false;}
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	error = glGetError(); if (error) dmLogError("glBindBuffer 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer 0: %#04X", error); return false;}
 
 	if (!vpx_img_alloc(&image, VPX_IMG_FMT_I420, width, height, 1)) {
-		dmLogError("Failed to allocate image.");
+		ERROR_MESSAGE("Failed to allocate image.");
 		return false;
 	}
 
 	vpx_codec_iface_t *codec_interface = vpx_codec_vp8_cx();
 	if (vpx_codec_enc_config_default(codec_interface, &encoder_config, 0)) {
-		dmLogError("Failed to get default codec config.");
+		ERROR_MESSAGE("Failed to get default codec config.");
 		return false;
 	}
 
@@ -404,7 +399,7 @@ bool ScreenRecorder::start() {
 	encoder_config.g_pass = VPX_RC_ONE_PASS;
 	encoder_config.rc_end_usage = VPX_VBR;
 	encoder_config.rc_resize_allowed = 0;
-	encoder_config.rc_min_quantizer = 10;
+	encoder_config.rc_min_quantizer = 2;
 	encoder_config.rc_max_quantizer = 50;
 	encoder_config.rc_buf_initial_sz = 4000;
 	encoder_config.rc_buf_optimal_sz = 5000;
@@ -414,7 +409,7 @@ bool ScreenRecorder::start() {
 	encoder_config.kf_max_dist = *capture_params.iframe * *capture_params.fps;
 
 	if (vpx_codec_enc_init(&codec, codec_interface, &encoder_config, 0)) {
-		dmLogError("Failed to initialize encoder");
+		ERROR_MESSAGE("Failed to initialize encoder: %s", codec.err_detail);
 		return false;
 	}
 
@@ -423,13 +418,13 @@ bool ScreenRecorder::start() {
 		double duration = *capture_params.duration + *capture_params.iframe; // Increase duration by keyframe interval.
 		size_t buffer_size = 1.5 * duration * (*capture_params.bitrate / 8); // Allocate enough memory for frames, plus a bit more for bitrate fluctuation.
 		if (!circular_buffer->init(buffer_size, duration * *capture_params.fps)) {
-			dmLogError("Failed to initialize circular encoder, requested %zu bytes.", buffer_size);
+			ERROR_MESSAGE("Failed to initialize circular encoder, requested %zu bytes.", buffer_size);
 			return false;
 		}
 	}
 
 	if (!webm_writer.open(capture_params.filename, width, height, *capture_params.fps)) {
-		dmLogError("Failed to open %s for writing.", capture_params.filename);
+		ERROR_MESSAGE("Failed to open %s for writing.", capture_params.filename);
 		return false;
 	}
 
@@ -444,83 +439,83 @@ bool ScreenRecorder::start() {
 	return true;
 }
 
-void ScreenRecorder::capture_frame() {
+bool ScreenRecorder::capture_frame(char *error_message) {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	GLenum error = glGetError(); if (error) dmLogError("glBindFramebuffer fbo: %d", error);
+	GLenum error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer fbo: %#04X", error); return false;}
 
 	glViewport(0, 0, *capture_params.width, *capture_params.height);
-	error = glGetError(); if (error) dmLogError("glViewport: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glViewport: %#04X", error); return false;}
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(shader_program);
-	error = glGetError(); if (error) dmLogError("glUseProgram: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glUseProgram: %#04X", error); return false;}
 
 	glActiveTexture(GL_TEXTURE0);
-	error = glGetError(); if (error) dmLogError("glActiveTexture: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glActiveTexture: %#04X", error); return false;}
 	glBindTexture(GL_TEXTURE_2D, capture_params.texture_id);
-	error = glGetError(); if (error) dmLogError("glBindTexture capture_params.texture_id: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindTexture capture_params.texture_id: %#04X", error); return false;}
 	glUniform1i(tex_uniform, 0);
-	error = glGetError(); if (error) dmLogError("glUniform1i: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glUniform1i: %#04X", error); return false;}
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	error = glGetError(); if (error) dmLogError("glBindBuffer: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer: %#04X", error); return false;}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_model), quad_model, GL_STATIC_DRAW);
-	error = glGetError(); if (error) dmLogError("glBufferData: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBufferData: %#04X", error); return false;}
 
 	glVertexAttribPointer(position_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-	error = glGetError(); if (error) dmLogError("glVertexAttribPointer position: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glVertexAttribPointer position: %#04X", error); return false;}
 	glVertexAttribPointer(texcoord_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-	error = glGetError(); if (error) dmLogError("glVertexAttribPointer texcoord: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glVertexAttribPointer texcoord: %#04X", error); return false;}
 
 	glEnableVertexAttribArray(position_attrib);
-	error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray position_attrib: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glEnableVertexAttribArray position_attrib: %#04X", error); return false;}
 
 	glEnableVertexAttribArray(texcoord_attrib);
-	error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray texcoord_attrib: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glEnableVertexAttribArray texcoord_attrib: %#04X", error); return false;}
 
 	glUniform2f(scale_uniform, *capture_params.x_scale, *capture_params.y_scale);
-	error = glGetError(); if (error) dmLogError("glUniform2f scale: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glUniform2f scale: %#04X", error); return false;}
 
 	glUniform2f(resolution_uniform, *capture_params.width, *capture_params.height);
-	error = glGetError(); if (error) dmLogError("glUniform2f resolution: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glUniform2f resolution: %#04X", error); return false;}
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	error = glGetError(); if (error) dmLogError("glDrawArrays: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDrawArrays: %#04X", error); return false;}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	error = glGetError(); if (error) dmLogError("glBindTexture 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindTexture 0: %#04X", error); return false;}
 
 	glDisableVertexAttribArray(position_attrib);
-	error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray position_attrib: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDisableVertexAttribArray position_attrib: %#04X", error); return false;}
 	glDisableVertexAttribArray(texcoord_attrib);
-	error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray texcoord_attrib: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glDisableVertexAttribArray texcoord_attrib: %#04X", error); return false;}
 
 	glUseProgram(0);
-	error = glGetError(); if (error) dmLogError("glUseProgram 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glUseProgram 0: %#04X", error); return false;}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	error = glGetError(); if (error) dmLogError("glBindBuffer 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer 0: %#04X", error); return false;}
 	
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[pbo_index]);
-	error = glGetError(); if (error) dmLogError("glBindBuffer GL_PIXEL_PACK_BUFFER: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
 
 	GLint is_mapped = GL_FALSE;
 	glGetBufferParameteriv(GL_PIXEL_PACK_BUFFER, GL_BUFFER_MAPPED, &is_mapped);
 	if (is_mapped) {
 		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-		error = glGetError(); if (error) dmLogError("glUnmapBuffer GL_PIXEL_PACK_BUFFER: %d", error);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glUnmapBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
 	}
 
 	glReadPixels(0, 0, *capture_params.width, *capture_params.height / 2, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	error = glGetError(); if (error) dmLogError("glReadPixels: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glReadPixels: %#04X", error); return false;}
 
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	error = glGetError(); if (error) dmLogError("glBindBuffer GL_PIXEL_PACK_BUFFER 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER 0: %#04X", error); return false;}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	error = glGetError(); if (error) dmLogError("glBindFramebuffer 0: %d", error);
+	error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer 0: %#04X", error); return false;}
 
 	if (is_pbo_full) {
 		if (*capture_params.async_encoding && !is_enconding_thread_available) {
@@ -528,7 +523,7 @@ void ScreenRecorder::capture_frame() {
 		}
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[(pbo_index + 1) % PBO_COUNT]);
 		GLubyte *pixels = (GLubyte *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-		error = glGetError(); if (error) dmLogError("glMapBuffer: %d", error);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glMapBuffer: %#04X", error); return false;}
 		int w = *capture_params.width;
 		int h = *capture_params.height;
 		if (pixels) {
@@ -548,9 +543,10 @@ void ScreenRecorder::capture_frame() {
 	}
 
 	pbo_index = (pbo_index + 1) % PBO_COUNT;
+	return true;
 }
 
-void ScreenRecorder::stop() {
+bool ScreenRecorder::stop(char *error_message) {
 	if (encoding_thread != NULL) {
 		dmLogDebug("Finishing encoding thread.");
 		// Finish encoding thread.
@@ -566,7 +562,8 @@ void ScreenRecorder::stop() {
 	}
 	vpx_img_free(&image);
 	if (vpx_codec_destroy(&codec)) {
-		dmLogError("Failed to destroy codec.");
+		ERROR_MESSAGE("Failed to destroy codec.");
+		return false;
 	}
 	if (circular_buffer != NULL) {
 		int64_t first_timestamp = 0;
@@ -584,8 +581,8 @@ void ScreenRecorder::stop() {
 			// Must wait for a keyframe first.
 			if (got_keyframe) {
 				if (!webm_writer.write_frame(data, size, timestamp - first_timestamp, is_keyframe)) {
-					dmLogError("Failed to write compressed frame %d.", frame_index);
-					break;
+					ERROR_MESSAGE("Failed to write compressed frame %d.", frame_index);
+					return false;
 				}
 			}
 		}
@@ -593,6 +590,7 @@ void ScreenRecorder::stop() {
 		circular_buffer = NULL;
 	}
 	webm_writer.close();
+	return true;
 }
 
 bool ScreenRecorder::encode_frame(bool is_flush) {

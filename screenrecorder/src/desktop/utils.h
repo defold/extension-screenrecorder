@@ -10,7 +10,10 @@
 #include "sdk.h"
 #include "../extension.h"
 
+#define ERROR_MESSAGE(format, ...) snprintf(error_message, 2048, format, ##__VA_ARGS__)
+
 namespace utils {
+	const int ERROR_MESSAGE_MAX = 2048;
 	struct Event {
 		const char *name;
 		const char *phase;

@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "../mkvmuxer/mkvmuxer.h"
+#include "mkvmuxer/mkvmuxer.h"
 
 namespace mkvparser {
 struct Colour;

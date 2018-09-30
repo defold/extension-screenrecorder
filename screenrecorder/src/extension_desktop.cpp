@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)// || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
 
 #define THREAD_IMPLEMENTATION
 #include <thread.h>
@@ -58,7 +58,6 @@ static int extension_enable_debug(lua_State *L) {
 }
 
 static int extension_get_info(lua_State *L) {
-	dmLogDebug("get_info()");
 	utils::check_arg_count(L, 0);
 	lua_createtable(L, 0, 4);
 
@@ -91,7 +90,6 @@ static int extension_get_info(lua_State *L) {
 }
 
 static int extension_init(lua_State *L) {
-	dmLogDebug("init()");
 	utils::check_arg_count(L, 1);
 	if (is_initialized) {
 		dmLogInfo("init(): The extension is already initialized.");
@@ -127,6 +125,8 @@ static int extension_init(lua_State *L) {
 	int w = *sr->capture_params.width;
 	int h = *sr->capture_params.height;
 
+	char error_message[utils::ERROR_MESSAGE_MAX];
+
 	bool success = get_render_target_texture_id(render_target, &sr->capture_params.texture_id);
 	if (!success) {
 		event.is_error = true;
@@ -137,9 +137,9 @@ static int extension_init(lua_State *L) {
 	} else if (sr->capture_params.duration != NULL && *sr->capture_params.duration < 5.0) {
 		event.is_error = true;
 		event.error_message = "Too small duration, must be at least 5 seconds.";
-	} else if (!sr->init()) {
+	} else if (!sr->init(error_message)) {
 		event.is_error = true;
-		event.error_message = "Failed to initialize OpenGL.";
+		event.error_message = error_message;
 	} else {
 		is_initialized = true;
 	}
@@ -149,22 +149,23 @@ static int extension_init(lua_State *L) {
 }
 
 int extension_start(lua_State *L) {
-	dmLogDebug("start()");
 	utils::check_arg_count(L, 0);
 	if (!check_is_initialized()) {
 		return 0;
 	}
 	if (!is_recording) {
-		bool success = sr->start();
+		char start_error_message[utils::ERROR_MESSAGE_MAX];
+		bool success = sr->start(start_error_message);
 		if (success) {
 			is_recording = true;
-			dmLogDebug("Recording.");
 		} else {
+			char error_message[utils::ERROR_MESSAGE_MAX];
+			ERROR_MESSAGE("Failed to start video recording: %s", start_error_message);
 			utils::Event event = {
 				.name = SCREENRECORDER,
 				.phase = EVENT_INIT,
 				.is_error = true,
-				.error_message = "Failed to start video recording."
+				.error_message = error_message
 			};
 			utils::dispatch_event(L, *lua_listener, &event);
 		}
@@ -173,19 +174,23 @@ int extension_start(lua_State *L) {
 }
 
 static int stop_thread_proc(void *unused) {
-	sr->stop();
-	dmLogDebug("Recording is done.");
+	char stop_error_message[utils::ERROR_MESSAGE_MAX];
+	bool is_error = !sr->stop(stop_error_message);
 	utils::Event event = {
 		.name = SCREENRECORDER,
 		.phase = EVENT_RECORDED,
-		.is_error = false
+		.is_error = is_error,
 	};
+	if (is_error) {
+		char error_message[utils::ERROR_MESSAGE_MAX];
+		ERROR_MESSAGE("Failed to stop video recording: %s", stop_error_message);
+		event.error_message = error_message;
+	}
 	utils::add_task(*lua_listener, &event);
 	return 0;
 }
 
 static int extension_stop(lua_State *L) {
-	dmLogDebug("stop()");
 	utils::check_arg_count(L, 0);
 	if (is_recording) {
 		if (stop_thread != NULL) {
@@ -201,19 +206,22 @@ static int extension_stop(lua_State *L) {
 
 static int mux_audio_video_thread_proc(void *unused) {
 	WebmWriter webm_writer;
-	webm_writer.mux_audio_video(mux_audio_video_user_data.audio_filename, mux_audio_video_user_data.video_filename, mux_audio_video_user_data.filename);
+	char error_message[utils::ERROR_MESSAGE_MAX];
+	bool is_error = !webm_writer.mux_audio_video(mux_audio_video_user_data.audio_filename, mux_audio_video_user_data.video_filename, mux_audio_video_user_data.filename, error_message);
 
 	utils::Event event = {
 		.name = SCREENRECORDER,
 		.phase = EVENT_MUXED,
-		.is_error = false
+		.is_error = is_error
 	};
+	if (is_error) {
+		event.error_message = error_message;
+	}
 	utils::add_task(*lua_listener, &event);
 	return 0;
 }
 
 static int extension_mux_audio_video(lua_State *L) {
-	dmLogDebug("mux_audio_video");
 	utils::check_arg_count(L, 1);
 
 	if (mux_audio_video_thread != NULL) {
@@ -235,27 +243,36 @@ static int extension_mux_audio_video(lua_State *L) {
 static int extension_capture_frame(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	if (is_recording) {
-		sr->capture_frame();
+		char capture_frame_error_message[utils::ERROR_MESSAGE_MAX];
+		bool success = sr->capture_frame(capture_frame_error_message);
+		if (!success) {
+			char error_message[utils::ERROR_MESSAGE_MAX];
+			ERROR_MESSAGE("Failed to capture video frame: %s", capture_frame_error_message);
+			utils::Event event = {
+				.name = SCREENRECORDER,
+				.phase = EVENT_INIT,
+				.is_error = true,
+				.error_message = error_message
+			};
+			utils::dispatch_event(L, *lua_listener, &event);
+		}
 	}
 	return 0;
 }
 
 static int extension_is_recording(lua_State *L) {
-	dmLogDebug("is_recording");
 	utils::check_arg_count(L, 0);
 	lua_pushboolean(L, is_recording);
 	return 1;
 }
 
 static int extension_is_preview_available(lua_State *L) {
-	dmLogDebug("is_preview_available");
 	utils::check_arg_count(L, 0);
 	lua_pushboolean(L, false);
 	return 1;
 }
 
 static int extension_show_preview(lua_State *L) {
-	dmLogDebug("show_preview");
 	utils::check_arg_count(L, 0);
 	return 0;
 }

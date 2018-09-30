@@ -42,7 +42,7 @@ static GLint position_attrib = 0;
 static GLint texcoord_attrib = 0;
 static GLint defold_texture_id = 0;
 
-static const char* vertex_shader_source = "#version 100\n"
+static const char *vertex_shader_source = "#version 100\n"
 	"attribute mediump vec2 position;"
 	"attribute mediump vec2 texcoord;"
 	"uniform mediump vec2 scale;"
@@ -53,7 +53,7 @@ static const char* vertex_shader_source = "#version 100\n"
 	"}";
 
 
-static const char* fragment_shader_source = "#version 100\n"
+static const char *fragment_shader_source = "#version 100\n"
 	"varying mediump vec2 var_texcoord;"
 	"uniform mediump sampler2D tex;"
 	"void main() {"
@@ -409,12 +409,10 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 }
 
 dmExtension::Result APP_INITIALIZE(dmExtension::AppParams *params) {
-	dmLogInfo("APP_INITIALIZE");
 	return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
-	dmLogInfo("APP_FINALIZE");
 	// Mention JNLua exports so they don't get optimized away.
 	if (params == NULL) {
 		Java_com_naef_jnlua_LuaState_lua_1version(NULL, NULL);
@@ -423,7 +421,6 @@ dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
 }
 
 dmExtension::Result INITIALIZE(dmExtension::Params *params) {
-	dmLogInfo("INITIALIZE");
 	lua_State *L = params->m_L;
 	ThreadAttacher attacher;
 	JNIEnv *env = attacher.env;
@@ -480,7 +477,6 @@ dmExtension::Result UPDATE(dmExtension::Params *params) {
 }
 
 dmExtension::Result FINALIZE(dmExtension::Params *params) {
-	dmLogInfo("FINALIZE");
 	ThreadAttacher attacher;
 	if (lua_loader_object != NULL) {
 		attacher.env->CallVoidMethod(lua_loader_object, lua_loader_finalize, lua_state_object);

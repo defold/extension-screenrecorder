@@ -12,7 +12,7 @@
 #include <queue>
 #include <utility>
 
-#include "vp9_header_parser.h"
+#include "common/vp9_header_parser.h"
 
 namespace vp9_parser {
 

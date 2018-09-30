@@ -16,7 +16,7 @@
 #include <map>
 
 #include "../common/webmids.h"
-#include "mkvmuxertypes.h"
+#include "../mkvmuxer/mkvmuxertypes.h"
 
 // For a description of the WebM elements see
 // http://www.webmproject.org/code/specs/container/.
@@ -795,6 +795,8 @@ class VideoTrack : public Track {
   uint64_t alpha_mode() { return alpha_mode_; }
   void set_width(uint64_t width) { width_ = width; }
   uint64_t width() const { return width_; }
+  void set_colour_space(const char* colour_space);
+  const char* colour_space() const { return colour_space_; }
 
   Colour* colour() { return colour_; }
 
@@ -824,6 +826,7 @@ class VideoTrack : public Track {
   uint64_t stereo_mode_;
   uint64_t alpha_mode_;
   uint64_t width_;
+  char* colour_space_;
 
   Colour* colour_;
   Projection* projection_;

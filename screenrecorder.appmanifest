@@ -1,0 +1,17 @@
+platforms:
+    x86_64-osx:
+        context:
+            excludeLibs: ["record","vpx"]
+            libs: ["record_null"]
+    x86_64-linux:
+        context:
+            excludeLibs: ["record","vpx"]
+            libs: ["record_null"]
+    x86_64-win32:
+        context:
+            excludeLibs: ["librecord", "vpx"]
+            libs: ["librecord_null"]
+            use-clang: true
+    x86-win32:
+        context:
+            use-clang: true

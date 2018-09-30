@@ -39,5 +39,5 @@ manifest = /AndroidManifest.xml
 bundle_identifier = com.spiralcodestudio.test1
 
 [native_extension]
-app_manifest = /clang.appmanifest
+app_manifest = /screenrecorder.appmanifest
 
