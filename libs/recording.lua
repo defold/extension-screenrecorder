@@ -39,33 +39,11 @@ function _M.toggle()
 	local output_filename = directories.path_for_file('gameplay.' .. video_ext, directories.documents)
 
 	local params = {
-		--## iOS params:
-		-- Shows a preview and edit window after a completed recording, default is false. Incompatible with set duration
-		-- and other video params. iOS takes full control over the video.
-		--enable_preview = true,
-		-- Scaling mode determines how frame is placed into specified width/height region.
-		-- SCALING_FIT - Crop to remove edge processing region; preserve aspect ratio of cropped source by reducing specified width or height if necessary.  Will not scale a small source up to larger dimensions.
-		-- SCALING_RESIZE - Crop to remove edge processing region; scale remainder to destination area.  Does not preserve aspect ratio.
-		-- SCALING_RESIZE_ASPECT - Preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.
-		-- SCALING_RESIZE_ASPECT_FILL - Preserve aspect ratio of the source, and crop picture to fit destination dimensions.
-		-- Default is SCALING_RESIZE_ASPECT.
-		--scaling = screenrecorder.SCALING_RESIZE_ASPECT,
-
-		--## Not available on iOS: render_target, x_scale, y_scale, fps.
-
-		--## Desktop params:
-		--async_encoding = true, -- Experimental: if true use a separate encoding thread. Might improve performance, might make it worse. Default is false.
-
-		--## Shared params:
-		render_target = camera.render_target, -- Use texture from specified render target.
-		--x_scale = 1, -- Horizontal scale, default is 1.
-		--y_scale = 1, -- Vertical scale, default is 1.
+		render_target = camera.render_target,
+		x_scale = 1,
+		y_scale = 1,
 		filename = video_filename,
-		width = 1280, height = 720, -- Video file dimensions.
-		--iframe = 3, -- Keyframe interval for circular encoder, default is 1 second.
-		--duration = 30, -- If set, use circular encoder to record last N seconds.
-		--fps = 60, -- Default is 30 frames per second. On iOS fps is chosen by the OS and this setting has no effect.
-		--bitrate = 2 * 1024 * 1024, -- Default is 2 * 1024 * 1024 bits per second.
+		width = 1280, height = 720,
 		listener = function(event)
 			if event.phase == 'init' then
 				if not event.is_error then
