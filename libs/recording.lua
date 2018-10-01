@@ -40,8 +40,8 @@ function _M.toggle()
 
 	local params = {
 		render_target = camera.render_target,
-		x_scale = 1,
-		y_scale = 1,
+		x_scale = camera.width_p2 / camera.width, -- Compensate render target being larger than video frame size on Android.
+		y_scale = camera.height_p2 / camera.height,
 		filename = video_filename,
 		width = 1280, height = 720,
 		listener = function(event)

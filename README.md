@@ -41,7 +41,7 @@ In `game.project` file add dependency `https://github.com/defold/extension-scree
 
 Copy `screenrecorder.appmanifest` into your project and choose it in your `game.project` under `native_extension -> App Manifest`. This file disables Defold's internal `record` library.
 
-In render script prepare a render target, the size of the render target should be not smaller than desired video frame size. On mobiles the size also has to be one of the power of two numbers (e.g. 512, 1024, 2048).
+In render script prepare a render target, the size of the render target should be not smaller than desired video frame size. On mobiles the size also has to be one of the power of two numbers (e.g. 512, 1024, 2048). To compensate the extra space around the image on Android you have to render to the center of the render target and upscale with `x_scale` and `y_scale`.
 
 Put `screenrecorder.capture_frame()` somewhere in your render script's `update()` method.
 
@@ -104,9 +104,9 @@ ___
 Muxes one audio file and one video file into one combined file. The duration of the output file is matched to the video file. On desktop platforms this function accepts WEBM files, on mobiles - MP4 and AAC files. Once muxing is done, a `'muxed'` event is dispatched.
 
 `params` - table with parameters.
-* `audio_filename` - string, path to the audio file.
-* `video_filename` - string, path to the video file.
-* `filename` - string, path to the output file.
+* `audio_filename` - string, path to the audio file. Required.
+* `video_filename` - string, path to the video file. Required.
+* `filename` - string, path to the output file. Required.
 ___
 ### `screenrecorder.is_preview_available()`
 

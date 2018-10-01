@@ -57,11 +57,12 @@ function init(self)
 end
 
 function update(self, dt)
+	camera.width, camera.height = render.get_window_width(), render.get_window_height()
 	render.enable_render_target(self.original_target)
 	render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
 	render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-	render.set_viewport(0, 0, render.get_window_width(), render.get_window_height())
-	camera.width, camera.height = render.get_window_width(), render.get_window_height()
+	-- Offset vieport to the center of the render target.
+	render.set_viewport((camera.width_p2 - camera.width) / 2, (camera.height_p2 - camera.height) / 2, camera.width, camera.height)
 	if self.is_perspective_view then
 		-- Perspective.
 		local up = vmath.vector3(0, 0, 1)
@@ -87,6 +88,7 @@ function update(self, dt)
 
 	render.disable_render_target(self.original_target)
 
+	render.set_viewport(0, 0, camera.width, camera.height)
 	render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
 	
 	if screenrecorder.is_half_fps then
@@ -103,7 +105,8 @@ function update(self, dt)
 	render.set_view(vmath.matrix4())
 
 	-- Render original target.
-	render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
+	-- Set projection to the center of the render target.
+	render.set_projection(vmath.matrix4_orthographic((camera.width_p2 - camera.width) / 2, (camera.width_p2 - camera.width) / 2 + camera.width, (camera.height_p2 - camera.height) / 2, (camera.height_p2 - camera.height) / 2 + camera.height, -100, 100))
 	render.enable_texture(0, self.original_target, render.BUFFER_COLOR_BIT)
 	render.draw(self.postprocessing_pred)
 	render.disable_texture(0, self.original_target)
@@ -111,6 +114,7 @@ function update(self, dt)
 	-- Render UI.
 	-- Blink REC button during recording.
 	if not screenrecorder.is_recording() or rec_blink_i > 30 then
+		render.set_projection(vmath.matrix4_orthographic(0, camera.width, 0, camera.height, -100, 100))
 		render.enable_state(render.STATE_BLEND)
 		render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
 		render.draw(self.ui_pred)

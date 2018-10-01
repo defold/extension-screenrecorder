@@ -77,6 +77,9 @@ function init(self)
 
 	-- Weapon cooldown
 	self.cooldown_timeout = 0
+
+	local system_name = sys.get_sys_info().system_name
+	self.is_mouse_enabled = system_name ~= 'iPhone OS' and system_name ~= 'Android'
 end
 
 function update(self)
@@ -199,7 +202,7 @@ function on_input(self, action_id, action)
 		if #action.touch > 0 then
 			process_touch(action.touch[1])
 		end
-	elseif action_id == hash('mouse-button-left') then
+	elseif action_id == hash('mouse-button-left') and self.is_mouse_enabled then
 		process_touch(action)
 	end
 end
