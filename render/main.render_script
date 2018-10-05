@@ -32,7 +32,7 @@ function init(self)
 
 	camera.width, camera.height = render.get_window_width(), render.get_window_height()
 	local system_name = sys.get_sys_info().system_name
-	if system_name == 'iPhone OS' or system_name == 'Android' then
+	if system_name == 'iPhone OS' or system_name == 'Android' or system_name == 'HTML5' then
 		-- Render target has to be power of 2 size on iOS and Android.
 		camera.width_p2, camera.height_p2 = next_pow2(camera.width), next_pow2(camera.height)
 	else

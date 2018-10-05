@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 
 #define THREAD_IMPLEMENTATION
 #include <thread.h>
@@ -12,6 +12,12 @@ static bool is_recording = false;
 static int *lua_listener = NULL;
 static thread_ptr_t mux_audio_video_thread = NULL;
 static thread_ptr_t stop_thread = NULL;
+
+#ifdef DM_PLATFORM_HTML5
+	static bool is_threading_available = false;
+#else
+	static bool is_threading_available = true;
+#endif
 
 struct MuxAudioVideoUserData {
 	char *audio_filename;
@@ -113,6 +119,10 @@ static int extension_init(lua_State *L) {
 	utils::table_get_lightuserdata_not_null(L, "render_target", &render_target);
 	lua_pop(L, 1); // params table.
 
+	#ifdef DM_PLATFORM_HTML5
+		*sr->capture_params.async_encoding = false;
+	#endif
+
 	utils::Event event = {
 		.name = SCREENRECORDER,
 		.phase = EVENT_INIT,
@@ -143,7 +153,6 @@ static int extension_init(lua_State *L) {
 	} else {
 		is_initialized = true;
 	}
-	
 	utils::dispatch_event(L, *lua_listener, &event);
 	return 0;
 }
@@ -193,11 +202,15 @@ static int stop_thread_proc(void *unused) {
 static int extension_stop(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	if (is_recording) {
-		if (stop_thread != NULL) {
-			thread_join(stop_thread);
-			thread_destroy(stop_thread);
+		if (is_threading_available) {
+			if (stop_thread != NULL) {
+				thread_join(stop_thread);
+				thread_destroy(stop_thread);
+			}
+			stop_thread = thread_create(stop_thread_proc, NULL, "Stop recording thread", THREAD_STACK_SIZE_DEFAULT);
+		} else {
+			stop_thread_proc(NULL);
 		}
-		stop_thread = thread_create(stop_thread_proc, NULL, "Stop recording thread", THREAD_STACK_SIZE_DEFAULT);
 	}
 	is_initialized = false;
 	is_recording = false;
@@ -235,7 +248,11 @@ static int extension_mux_audio_video(lua_State *L) {
 	utils::table_get_string_not_null(L, "filename", &mux_audio_video_user_data.filename);
 	lua_pop(L, 1); // params table.
 
-	mux_audio_video_thread = thread_create(mux_audio_video_thread_proc, NULL, "Mux audio and video thread", THREAD_STACK_SIZE_DEFAULT);
+	if (is_threading_available) {
+		mux_audio_video_thread = thread_create(mux_audio_video_thread_proc, NULL, "Mux audio and video thread", THREAD_STACK_SIZE_DEFAULT);
+	} else {
+		mux_audio_video_thread_proc(NULL);
+	}
 
 	return 0;
 }

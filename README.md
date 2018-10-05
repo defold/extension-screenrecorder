@@ -8,6 +8,7 @@ This extension captures video gameplay.
 * macOS x86_64.
 * Linux x86_64.
 * Windows x86_64.
+* HTML5.
 
 macOS, Linux and Windows require OpenGL 3.0 or better video card.
 
@@ -15,7 +16,7 @@ macOS, Linux and Windows require OpenGL 3.0 or better video card.
 * Android and iOS
 	* Encoder: H.264 codec in the MP4 container.
 	* Muxer: accepts MP4 video and AAC audio.
-* macOS, Linux, Windows
+* macOS, Linux, Windows, HTML5
 	* Encoder: VP8 codec in the WEBM container.
 	* Muxer: accepts WEBM video and WEBM audio (Vorbis).
 
@@ -49,7 +50,7 @@ Before starting the capture the extension has to be initialized with `screenreco
 
 When the setup is done, just start the capture with `screenrecorder.start()`.
 
-To work with filenames on different platforms the [directories extension](https://www.defold.com/community/projects/121601/) is recommended.
+To work with filenames on different platforms the [directories extension](https://www.defold.com/community/projects/121601/) is recommended. It can also download vide file from the browser to the computer.
 
 ## API reference
 ___
@@ -145,10 +146,11 @@ The `listener` function receives an `event` table with information about succesf
 	* [CoreMedia](https://developer.apple.com/documentation/coremedia?language=objc)
 	* [H.264](https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC)
 	* [MP4](https://en.wikipedia.org/wiki/MPEG-4_Part_14)
-* macOS, Linux, Windows
+* macOS, Linux, Windows, HTML5
 	* [libvpx](https://en.wikipedia.org/wiki/Libvpx)
 	* [VP8 codec](https://en.wikipedia.org/wiki/VP8)
 	* [libwebm](https://github.com/webmproject/libwebm)
 	* [WebM](https://en.wikipedia.org/wiki/WebM)
 	* [OpenGL](https://en.wikipedia.org/wiki/OpenGL)
+	* [emscripten](https://github.com/kripken/emscripten)
 	

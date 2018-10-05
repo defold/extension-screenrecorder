@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 
 #include <string>
 
@@ -47,7 +47,14 @@
 	static PFNGLMAPBUFFERPROC glMapBuffer = NULL;
 #endif
 
-static const char *vertex_shader_source = "#version 110\n"
+#ifdef DM_PLATFORM_HTML5
+	#define SHADER_HEADER "#version 100\n"\
+	"precision mediump float;\n"
+#else
+	#define SHADER_HEADER "#version 110\n"
+#endif
+
+static const char *vertex_shader_source = SHADER_HEADER
 	"attribute vec2 position;"
 	"attribute vec2 texcoord;"
 	"varying vec2 var_texcoord;"
@@ -57,7 +64,7 @@ static const char *vertex_shader_source = "#version 110\n"
 	"}";
 
 
-static const char *fragment_shader_source = "#version 110\n"
+static const char *fragment_shader_source = SHADER_HEADER
 	"varying vec2 var_texcoord;"
 	"uniform sampler2D tex0;"
 	"uniform vec2 scale;"
@@ -139,6 +146,10 @@ static float quad_model[] = {
 
 static const int PBO_COUNT = 3;
 
+static void clear_gl_errors() {
+	while (glGetError() != GL_NO_ERROR) {}
+}
+
 static int encoding_thread_proc(void *user_data) {
 	thread_set_high_priority();
 	ScreenRecorder *sr = static_cast<ScreenRecorder *>(user_data);
@@ -157,6 +168,9 @@ static int encoding_thread_proc(void *user_data) {
 }
 
 ScreenRecorder::ScreenRecorder() :
+	#ifdef DM_PLATFORM_HTML5
+		pixels(NULL),
+	#endif
 	scaled_texture(0),
 	shader_program(0),
 	vertex_buffer(0),
@@ -244,6 +258,7 @@ bool ScreenRecorder::init(char *error_message) {
 	if (is_initialized) {
 		return true;
 	}
+	clear_gl_errors();
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	GLenum error = glGetError(); if (error) {ERROR_MESSAGE("glCreateShader: %#04X", error); return false;}
 	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -322,8 +337,10 @@ bool ScreenRecorder::init(char *error_message) {
 
 	is_initialized = true;
 
-	thread_signal_init(&encoding_signal);
-	thread_signal_init(&encoding_done_signal);
+	#ifndef DM_PLATFORM_HTML5
+		thread_signal_init(&encoding_signal);
+		thread_signal_init(&encoding_done_signal);
+	#endif
 
 	return true;
 }
@@ -358,26 +375,32 @@ bool ScreenRecorder::start(char *error_message) {
 	error = glGetError(); if (error) {ERROR_MESSAGE("glFramebufferTexture2D fbo scaled_texture: %#04X", error); return false;}
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {ERROR_MESSAGE("glCheckFramebufferStatus: %#04X", error); return false;}
-	GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, draw_buffers);
+	#ifdef DM_PLATFORM_HTML5
+		pixels = new uint8_t[3 * 8 * width * height];
+	#else
+		GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, draw_buffers);
+	#endif
 	error = glGetError(); if (error) {ERROR_MESSAGE("glDrawBuffers: %#04X", error); return false;}
 	glBindTexture(GL_TEXTURE_2D, 0);
 	error = glGetError(); if (error) {ERROR_MESSAGE("glBindTexture 0: %#04X", error); return false;}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer 0: %#04X", error); return false;}
 
-	pbo_index = 0;
-	is_pbo_full = false;
-	glGenBuffers(PBO_COUNT, pbo);
-	error = glGetError(); if (error) {ERROR_MESSAGE("glGenBuffers pbo: %#04X", error); return false;}
-	for (int i = 0; i < PBO_COUNT; ++i) {
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[i]);
-		error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer pbo[%d]: %#04X", i, error); return false;}
-		glBufferData(GL_PIXEL_PACK_BUFFER, width * height * 3, NULL, GL_STREAM_READ);
-		error = glGetError(); if (error) {ERROR_MESSAGE("glBufferData %d: %#04X", i, error); return false;}
-	}
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer 0: %#04X", error); return false;}
+	#ifndef DM_PLATFORM_HTML5
+		pbo_index = 0;
+		is_pbo_full = false;
+		glGenBuffers(PBO_COUNT, pbo);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glGenBuffers pbo: %#04X", error); return false;}
+		for (int i = 0; i < PBO_COUNT; ++i) {
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[i]);
+			error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer pbo[%d]: %#04X", i, error); return false;}
+			glBufferData(GL_PIXEL_PACK_BUFFER, width * height * 3, NULL, GL_STREAM_READ);
+			error = glGetError(); if (error) {ERROR_MESSAGE("glBufferData %d: %#04X", i, error); return false;}
+		}
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer 0: %#04X", error); return false;}
+	#endif
 
 	if (!vpx_img_alloc(&image, VPX_IMG_FMT_I420, width, height, 1)) {
 		ERROR_MESSAGE("Failed to allocate image.");
@@ -395,7 +418,11 @@ bool ScreenRecorder::start(char *error_message) {
 	encoder_config.g_timebase.num = 1;
 	encoder_config.g_timebase.den = *capture_params.fps;
 	encoder_config.rc_target_bitrate = *capture_params.bitrate;
-	encoder_config.g_threads = 4;
+	#ifdef DM_PLATFORM_HTML5
+		encoder_config.g_threads = 0;
+	#else
+		encoder_config.g_threads = 4;
+	#endif
 	encoder_config.g_pass = VPX_RC_ONE_PASS;
 	encoder_config.rc_end_usage = VPX_VBR;
 	encoder_config.rc_resize_allowed = 0;
@@ -498,51 +525,65 @@ bool ScreenRecorder::capture_frame(char *error_message) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer 0: %#04X", error); return false;}
 	
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[pbo_index]);
-	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
+	#ifdef DM_PLATFORM_HTML5
+		int w = *capture_params.width;
+		int h = *capture_params.height;
+		glReadPixels(0, 0, w, h / 2, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glReadPixels: %#04X", error); return false;}
+		image.planes[0] = pixels; // Y frame.
+		image.planes[1] = image.planes[0] + w * h; // U frame.
+		image.planes[2] = image.planes[1] + w * h / 4; // V frame.
+		encode_frame(false);
+	#else
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[pbo_index]);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
 
-	GLint is_mapped = GL_FALSE;
-	glGetBufferParameteriv(GL_PIXEL_PACK_BUFFER, GL_BUFFER_MAPPED, &is_mapped);
-	if (is_mapped) {
-		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-		error = glGetError(); if (error) {ERROR_MESSAGE("glUnmapBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
-	}
+		GLint is_mapped = GL_FALSE;
+		glGetBufferParameteriv(GL_PIXEL_PACK_BUFFER, GL_BUFFER_MAPPED, &is_mapped);
+		if (is_mapped) {
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+			error = glGetError(); if (error) {ERROR_MESSAGE("glUnmapBuffer GL_PIXEL_PACK_BUFFER: %#04X", error); return false;}
+		}
 
-	glReadPixels(0, 0, *capture_params.width, *capture_params.height / 2, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	error = glGetError(); if (error) {ERROR_MESSAGE("glReadPixels: %#04X", error); return false;}
+		glReadPixels(0, 0, *capture_params.width, *capture_params.height / 2, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glReadPixels: %#04X", error); return false;}
 
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER 0: %#04X", error); return false;}
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		error = glGetError(); if (error) {ERROR_MESSAGE("glBindBuffer GL_PIXEL_PACK_BUFFER 0: %#04X", error); return false;}
+	#endif
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer 0: %#04X", error); return false;}
 
-	if (is_pbo_full) {
-		if (*capture_params.async_encoding && !is_enconding_thread_available) {
-			thread_signal_wait(&encoding_done_signal, THREAD_SIGNAL_WAIT_INFINITE);
-		}
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[(pbo_index + 1) % PBO_COUNT]);
-		GLubyte *pixels = (GLubyte *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-		error = glGetError(); if (error) {ERROR_MESSAGE("glMapBuffer: %#04X", error); return false;}
-		int w = *capture_params.width;
-		int h = *capture_params.height;
-		if (pixels) {
-			image.planes[0] = pixels; // Y frame.
-			image.planes[1] = image.planes[0] + w * h; // U frame.
-			image.planes[2] = image.planes[1] + w * h / 4; // V frame.
-			if (*capture_params.async_encoding) {
-				// Signal encoding thread to start encoding.
-				thread_signal_raise(&encoding_signal);
-			} else {
-				encode_frame(false);
+	#ifndef DM_PLATFORM_HTML5
+		if (is_pbo_full) {
+			if (*capture_params.async_encoding && !is_enconding_thread_available) {
+				thread_signal_wait(&encoding_done_signal, THREAD_SIGNAL_WAIT_INFINITE);
 			}
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[(pbo_index + 1) % PBO_COUNT]);
+			int w = *capture_params.width;
+			int h = *capture_params.height;
+			//GLubyte *pixels = (GLubyte *)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, 1.5 * w * h, GL_MAP_READ_BIT);
+			GLubyte *pixels = (GLubyte *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+			error = glGetError(); if (error) {ERROR_MESSAGE("glMapBuffer: %#04X", error); return false;}
+			if (pixels) {
+				image.planes[0] = pixels; // Y frame.
+				image.planes[1] = image.planes[0] + w * h; // U frame.
+				image.planes[2] = image.planes[1] + w * h / 4; // V frame.
+				if (*capture_params.async_encoding) {
+					// Signal encoding thread to start encoding.
+					thread_signal_raise(&encoding_signal);
+				} else {
+					encode_frame(false);
+				}
+			}
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		} else if (pbo_index == PBO_COUNT - 1) {
+			is_pbo_full = true;
 		}
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	} else if (pbo_index == PBO_COUNT - 1) {
-		is_pbo_full = true;
-	}
 
-	pbo_index = (pbo_index + 1) % PBO_COUNT;
+		pbo_index = (pbo_index + 1) % PBO_COUNT;
+	#endif
 	return true;
 }
 
@@ -565,6 +606,9 @@ bool ScreenRecorder::stop(char *error_message) {
 		ERROR_MESSAGE("Failed to destroy codec.");
 		return false;
 	}
+	#ifdef DM_PLATFORM_HTML5
+		delete []pixels;
+	#endif
 	if (circular_buffer != NULL) {
 		int64_t first_timestamp = 0;
 		bool got_keyframe = false;

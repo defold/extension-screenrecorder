@@ -24,6 +24,10 @@
 	if (function == 0x0) function = (type)wglGetProcAddress(name "ARB");\
 	if (function == 0x0) function = (type)wglGetProcAddress(name "EXT");\
 	if (function == 0x0) dmLogError("Could not find gl function %s.", name);
+#elif defined(DM_PLATFORM_HTML5)
+	#include <GLES2/gl2.h>
+	#include <GLES2/gl2ext.h>
+	#include <emscripten.h>
 #endif
 
 #include <vpx/vpx_encoder.h>
@@ -50,6 +54,9 @@ struct CaptureParams {
 
 class ScreenRecorder {
 private:
+	#ifdef DM_PLATFORM_HTML5
+		uint8_t *pixels;
+	#endif
 	GLuint scaled_texture;
 	GLuint shader_program;
 	GLuint vertex_buffer;

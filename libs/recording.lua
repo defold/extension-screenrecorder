@@ -10,7 +10,8 @@ local is_screenrecorder_init = false
 local reboot_i = 1
 
 local system_name = sys.get_sys_info().system_name
-local is_desktop = system_name == 'Darwin' or system_name == 'Linux' or system_name == 'Windows'
+local is_desktop = system_name == 'Darwin' or system_name == 'Linux' or system_name == 'Windows' or system_name == 'HTML5'
+local is_html5 = system_name == 'HTML5'
 
 function _M.toggle()
 	-- Uncomment to test rebooting.
@@ -23,7 +24,7 @@ function _M.toggle()
 
 	local video_ext = is_desktop and 'webm' or 'mp4'
 	local audio_ext = is_desktop and 'webm' or 'aac'
-
+	
 	-- Temporary audio track file, saved from resources.
 	if not audio_filename then
 		local audio_content = sys.load_resource('/resources/audio.' .. audio_ext)
@@ -37,7 +38,7 @@ function _M.toggle()
 	local video_filename = directories.path_for_file('video.' .. video_ext, directories.documents)
 	-- Video file with muxed-in audio track.
 	local output_filename = directories.path_for_file('gameplay.' .. video_ext, directories.documents)
-
+	
 	local params = {
 		render_target = camera.render_target,
 		x_scale = camera.width_p2 / camera.width, -- Compensate render target being larger than video frame size on Android.
@@ -73,7 +74,10 @@ function _M.toggle()
 			elseif event.phase == 'muxed' then
 				if not event.is_error then
 					print('Screenrecorder muxed audio and video tracks.')
-					if is_desktop then
+					if is_html5 then
+						-- On HTML5 save the file to the computer.
+						directories.download_file(output_filename)
+					elseif is_desktop then
 						-- On desktop just print out file location.
 						print('Video saved: ' .. output_filename)
 					else
@@ -93,6 +97,12 @@ function _M.toggle()
 			end
 		end
 	}
+	-- Reduce video size on HTML5 for better performance.
+	if is_html5 then
+		params.width = 640
+		params.height = 360
+	end
+	
 	-- Tell render script to capture less frames to match fps.
 	screenrecorder.is_half_fps = not params.fps or params.fps == 30
 	-- Set to Full HD if screen is big enough.
@@ -103,12 +113,14 @@ function _M.toggle()
 
 	if not screenrecorder.is_recording() then
 		if not is_screenrecorder_init then
+			print('Initializing the screenrecorder.')
 			screenrecorder.init(params)
 		else
-			print('Staring recording.')
+			print('Starting recording.')
 			screenrecorder.start()
 		end
 	else
+		print('stopping recording.')
 		screenrecorder.stop()
 		-- Reinit is required each time.
 		is_screenrecorder_init = false

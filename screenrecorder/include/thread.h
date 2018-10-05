@@ -67,7 +67,7 @@ void thread_timer_wait( thread_timer_t* timer, THREAD_U64 nanoseconds );
 
 #if defined( _WIN32 )
     typedef unsigned long long thread_tls_t;
-#elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+#elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
     typedef unsigned long thread_tls_t;
 #else
     typedef void* thread_tls_t;
@@ -616,7 +616,7 @@ struct thread_queue_t
         } THREADNAME_INFO;
     #pragma pack(pop)
     
-#elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+#elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
     #include <stdint.h>
     #include <pthread.h>
@@ -639,7 +639,7 @@ thread_id_t thread_current_thread_id( void )
 
         return (void*) (uintptr_t)GetCurrentThreadId();
 
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
     
         return (void*) pthread_self();
 
@@ -655,7 +655,7 @@ void thread_yield( void )
 
         SwitchToThread();
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
     
         sched_yield();
     
@@ -671,7 +671,7 @@ void thread_exit( int return_code )
 
         ExitThread( (DWORD) return_code );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
     
         pthread_exit( (void*)(uintptr_t) return_code );
     
@@ -710,13 +710,13 @@ thread_ptr_t thread_create( int (*thread_proc)( void* ), void* user_data, char c
 
         return (thread_ptr_t) handle;
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_t thread;
         if( 0 != pthread_create( &thread, NULL, ( void* (*)( void * ) ) thread_proc, user_data ) )
             return NULL;
 
-        #if !defined( __APPLE__ ) // max doesn't support pthread_setname_np. alternatives?
+        #if !defined( __APPLE__ ) && !defined( __EMSCRIPTEN__ ) // max doesn't support pthread_setname_np. alternatives?
             if( name ) pthread_setname_np( thread, name );
         #endif
 
@@ -735,7 +735,7 @@ void thread_destroy( thread_ptr_t thread )
         WaitForSingleObject( (HANDLE) thread, INFINITE );
         CloseHandle( (HANDLE) thread );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_join( (pthread_t) thread, NULL );
 
@@ -754,7 +754,7 @@ int thread_join( thread_ptr_t thread )
         GetExitCodeThread( (HANDLE) thread, &retval );
         return (int) retval;
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         void* retval;
         pthread_join( (pthread_t) thread, &retval );
@@ -772,7 +772,7 @@ void thread_set_high_priority( void )
 
         SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         struct sched_param sp;
         memset( &sp, 0, sizeof( sp ) );
@@ -797,7 +797,7 @@ void thread_mutex_init( thread_mutex_t* mutex )
 
         InitializeCriticalSectionAndSpinCount( (CRITICAL_SECTION*) mutex, 32 );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         // Compile-time size check
         struct x { char thread_mutex_type_too_small : ( sizeof( thread_mutex_t ) < sizeof( pthread_mutex_t ) ? 0 : 1 ); };
@@ -816,7 +816,7 @@ void thread_mutex_term( thread_mutex_t* mutex )
         
         DeleteCriticalSection( (CRITICAL_SECTION*) mutex );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_destroy( (pthread_mutex_t*) mutex );
     
@@ -832,7 +832,7 @@ void thread_mutex_lock( thread_mutex_t* mutex )
 
         EnterCriticalSection( (CRITICAL_SECTION*) mutex );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_lock( (pthread_mutex_t*) mutex );
     
@@ -848,7 +848,7 @@ void thread_mutex_unlock( thread_mutex_t* mutex )
 
         LeaveCriticalSection( (CRITICAL_SECTION*) mutex );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_unlock( (pthread_mutex_t*) mutex );
     
@@ -870,7 +870,7 @@ struct thread_internal_signal_t
             HANDLE event;
         #endif 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_t mutex;
         pthread_cond_t condition;
@@ -902,7 +902,7 @@ void thread_signal_init( thread_signal_t* signal )
             internal->event = CreateEvent( NULL, FALSE, FALSE, NULL );
         #endif 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_init( &internal->mutex, NULL );
         pthread_cond_init( &internal->condition, NULL );
@@ -926,7 +926,7 @@ void thread_signal_init( thread_signal_t* signal )
             CloseHandle( internal->event );
         #endif 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_destroy( &internal->mutex );
         pthread_cond_destroy( &internal->condition );
@@ -952,7 +952,7 @@ void thread_signal_raise( thread_signal_t* signal )
             SetEvent( internal->event );
         #endif 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_mutex_lock( &internal->mutex );
         internal->value = 1;
@@ -987,7 +987,7 @@ int thread_signal_wait( thread_signal_t* signal, int timeout_ms )
             return !failed;
         #endif 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         struct timespec ts;
         if( timeout_ms >= 0 )
@@ -1029,7 +1029,7 @@ int thread_atomic_int_load( thread_atomic_int_t* atomic )
 
         return InterlockedCompareExchange( &atomic->i, 0, 0 );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_fetch_and_add( &atomic->i, 0 );
     
@@ -1045,7 +1045,7 @@ void thread_atomic_int_store( thread_atomic_int_t* atomic, int desired )
     
         InterlockedExchange( &atomic->i, desired );
 
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         __sync_lock_test_and_set( &atomic->i, desired );
         __sync_lock_release( &atomic->i );
@@ -1062,7 +1062,7 @@ int thread_atomic_int_inc( thread_atomic_int_t* atomic )
     
         return InterlockedIncrement( &atomic->i ) - 1;
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_fetch_and_add( &atomic->i, 1 );
     
@@ -1078,7 +1078,7 @@ int thread_atomic_int_dec( thread_atomic_int_t* atomic )
     
         return InterlockedDecrement( &atomic->i ) + 1;
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_fetch_and_sub( &atomic->i, 1 );
 
@@ -1094,7 +1094,7 @@ int thread_atomic_int_add( thread_atomic_int_t* atomic, int value )
     
         return InterlockedExchangeAdd ( &atomic->i, value );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_fetch_and_add( &atomic->i, value );
     
@@ -1110,7 +1110,7 @@ int thread_atomic_int_sub( thread_atomic_int_t* atomic, int value )
     
         return InterlockedExchangeAdd( &atomic->i, -value );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_fetch_and_sub( &atomic->i, value );
 
@@ -1126,7 +1126,7 @@ int thread_atomic_int_swap( thread_atomic_int_t* atomic, int desired )
     
         return InterlockedExchange( &atomic->i, desired );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         int old = (int)__sync_lock_test_and_set( &atomic->i, desired );
         __sync_lock_release( &atomic->i );
@@ -1144,7 +1144,7 @@ int thread_atomic_int_compare_and_swap( thread_atomic_int_t* atomic, int expecte
     
         return InterlockedCompareExchange( &atomic->i, desired, expected );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return (int)__sync_val_compare_and_swap( &atomic->i, expected, desired );
     
@@ -1160,7 +1160,7 @@ void* thread_atomic_ptr_load( thread_atomic_ptr_t* atomic )
     
         return InterlockedCompareExchangePointer( &atomic->ptr, 0, 0 );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return __sync_fetch_and_add( &atomic->ptr, 0 );
     
@@ -1182,7 +1182,7 @@ void thread_atomic_ptr_store( thread_atomic_ptr_t* atomic, void* desired )
         #pragma warning( pop )
 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         __sync_lock_test_and_set( &atomic->ptr, desired );
         __sync_lock_release( &atomic->ptr );
@@ -1204,7 +1204,7 @@ void* thread_atomic_ptr_swap( thread_atomic_ptr_t* atomic, void* desired )
         return InterlockedExchangePointer( &atomic->ptr, desired );
         #pragma warning( pop )
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         void* old = __sync_lock_test_and_set( &atomic->ptr, desired );
         __sync_lock_release( &atomic->ptr );
@@ -1222,7 +1222,7 @@ void* thread_atomic_ptr_compare_and_swap( thread_atomic_ptr_t* atomic, void* exp
     
         return InterlockedCompareExchangePointer( &atomic->ptr, desired, expected );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return __sync_val_compare_and_swap( &atomic->ptr, expected, desired );
 
@@ -1248,7 +1248,7 @@ void thread_timer_init( thread_timer_t* timer )
 
         *(HANDLE*)timer = CreateWaitableTimer( NULL, TRUE, NULL );
 
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         // Nothing
 
@@ -1268,7 +1268,7 @@ void thread_timer_term( thread_timer_t* timer )
         if( timeGetDevCaps( &tc, sizeof( TIMECAPS ) ) == TIMERR_NOERROR ) 
             timeEndPeriod( tc.wPeriodMin );
 
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         // Nothing
     
@@ -1288,7 +1288,7 @@ void thread_timer_wait( thread_timer_t* timer, THREAD_U64 nanoseconds )
         (void) b;
         WaitForSingleObject( *(HANDLE*)timer, INFINITE ); 
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         struct timespec rem;
         struct timespec req;
@@ -1313,7 +1313,7 @@ thread_tls_t thread_tls_create( void )
         else
             return (thread_tls_t) (uintptr_t) tls;
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_key_t tls;
         if( pthread_key_create( &tls, NULL ) == 0 )
@@ -1333,7 +1333,7 @@ void thread_tls_destroy( thread_tls_t tls )
 
         TlsFree( (DWORD) (uintptr_t) tls );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_key_delete( (pthread_key_t) tls );
     
@@ -1349,7 +1349,7 @@ void thread_tls_set( thread_tls_t tls, void* value )
 
         TlsSetValue( (DWORD) (uintptr_t) tls, value );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         pthread_setspecific( (pthread_key_t) tls, value );
     
@@ -1365,7 +1365,7 @@ void* thread_tls_get( thread_tls_t tls )
 
         return TlsGetValue( (DWORD) (uintptr_t) tls );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
 
         return pthread_getspecific( (pthread_key_t) tls );
     

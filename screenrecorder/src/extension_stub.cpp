@@ -1,4 +1,4 @@
-#if !defined(DM_PLATFORM_ANDROID) && !defined(DM_PLATFORM_IOS) && !defined(DM_PLATFORM_OSX) && !defined(DM_PLATFORM_LINUX) && !defined(DM_PLATFORM_WINDOWS)
+#if !defined(DM_PLATFORM_ANDROID) && !defined(DM_PLATFORM_IOS) && !defined(DM_PLATFORM_OSX) && !defined(DM_PLATFORM_LINUX) && !defined(DM_PLATFORM_WINDOWS) && !defined(DM_PLATFORM_HTML5)
 
 #include <dmsdk/sdk.h>
 #include "extension.h"
