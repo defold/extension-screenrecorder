@@ -2,7 +2,7 @@
 
 #define THREAD_IMPLEMENTATION
 #include <thread.h>
-#include "extension.h"
+#include "screenrecorder_private.h"
 #include "desktop/screenrecorder.h"
 #include "desktop/utils.h"
 
@@ -13,6 +13,7 @@ static int *lua_listener = NULL;
 static thread_ptr_t mux_audio_video_thread = NULL;
 static thread_ptr_t stop_thread = NULL;
 
+// Emscripten does not support threading.
 #ifdef DM_PLATFORM_HTML5
 	static bool is_threading_available = false;
 #else
@@ -32,6 +33,8 @@ static const char *EVENT_INIT = "init";
 static const char *EVENT_MUXED = "muxed";
 static const char *EVENT_RECORDED = "recorded";
 
+// The extension receives video frames from Defold's render target internal texture.
+// This method retrives this texture's OpenGL id.
 static bool get_render_target_texture_id(void *render_target, int *texture_id) {
 	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment((dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
 	if (color_texture == NULL) {
@@ -57,45 +60,7 @@ static bool check_is_initialized() {
 	}
 }
 
-static int extension_enable_debug(lua_State *L) {
-	utils::check_arg_count(L, 0);
-	utils::enable_debug();
-	return 0;
-}
-
-static int extension_get_info(lua_State *L) {
-	utils::check_arg_count(L, 0);
-	lua_createtable(L, 0, 4);
-
-	const char* version = (const char*)glGetString(GL_VERSION);
-	lua_pushstring(L, "version");
-	lua_pushstring(L, version);
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "vendor");
-	lua_pushstring(L, (const char*)glGetString(GL_VENDOR));
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "renderer");
-	lua_pushstring(L, (const char*)glGetString(GL_RENDERER));
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "shading_language_version");
-	#ifdef GL_SHADING_LANGUAGE_VERSION
-		lua_pushstring(L, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
-	#else
-		lua_pushstring(L, "");
-	#endif
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "extensions");
-	lua_pushstring(L, (const char*)glGetString(GL_EXTENSIONS));
-	lua_settable(L, -3);
-
-	return 1;
-}
-
-static int extension_init(lua_State *L) {
+int ScreenRecorder_init(lua_State *L) {
 	utils::check_arg_count(L, 1);
 	if (is_initialized) {
 		dmLogInfo("init(): The extension is already initialized.");
@@ -104,6 +69,7 @@ static int extension_init(lua_State *L) {
 
 	void *render_target = NULL;
 
+	// Parse params table argument.
 	utils::get_table(L, 1); // params.
 	utils::table_get_string_not_null(L, "filename", &sr->capture_params.filename);
 	utils::table_get_integer(L, "width", &sr->capture_params.width, 1280);
@@ -157,7 +123,7 @@ static int extension_init(lua_State *L) {
 	return 0;
 }
 
-int extension_start(lua_State *L) {
+int ScreenRecorder_start(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	if (!check_is_initialized()) {
 		return 0;
@@ -199,7 +165,7 @@ static int stop_thread_proc(void *unused) {
 	return 0;
 }
 
-static int extension_stop(lua_State *L) {
+int ScreenRecorder_stop(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	if (is_recording) {
 		if (is_threading_available) {
@@ -234,7 +200,7 @@ static int mux_audio_video_thread_proc(void *unused) {
 	return 0;
 }
 
-static int extension_mux_audio_video(lua_State *L) {
+int ScreenRecorder_mux_audio_video(lua_State *L) {
 	utils::check_arg_count(L, 1);
 
 	if (mux_audio_video_thread != NULL) {
@@ -257,7 +223,7 @@ static int extension_mux_audio_video(lua_State *L) {
 	return 0;
 }
 
-static int extension_capture_frame(lua_State *L) {
+int ScreenRecorder_capture_frame(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	if (is_recording) {
 		char capture_frame_error_message[utils::ERROR_MESSAGE_MAX];
@@ -277,62 +243,33 @@ static int extension_capture_frame(lua_State *L) {
 	return 0;
 }
 
-static int extension_is_recording(lua_State *L) {
+int ScreenRecorder_is_recording(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	lua_pushboolean(L, is_recording);
 	return 1;
 }
 
-static int extension_is_preview_available(lua_State *L) {
+int ScreenRecorder_is_preview_available(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	lua_pushboolean(L, false);
 	return 1;
 }
 
-static int extension_show_preview(lua_State *L) {
+int ScreenRecorder_show_preview(lua_State *L) {
 	utils::check_arg_count(L, 0);
 	return 0;
 }
 
-static const luaL_reg extension_functions[] = {
-	{"enable_debug", extension_enable_debug},
-	{"init", extension_init},
-	{"start", extension_start},
-	{"stop", extension_stop},
-	{"mux_audio_video", extension_mux_audio_video},
-	{"capture_frame", extension_capture_frame},
-	{"get_info", extension_get_info},
-	{"is_recording", extension_is_recording},
-	{"is_preview_available", extension_is_preview_available},
-    {"show_preview", extension_show_preview},
-	{0, 0}
-};
-
-dmExtension::Result APP_INITIALIZE(dmExtension::AppParams *params) {
-	return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
-	return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result INITIALIZE(dmExtension::Params *params) {
-	luaL_register(params->m_L, EXTENSION_NAME_STRING, extension_functions);
-	lua_pop(params->m_L, 1);
+void ScreenRecorder_initialize(lua_State *L) {
 	sr = new ScreenRecorder();
-	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result UPDATE(dmExtension::Params *params) {
-	utils::execute_tasks(params->m_L);
-	return dmExtension::RESULT_OK;
+void ScreenRecorder_update(lua_State *L) {
+	utils::execute_tasks(L);
 }
 
-dmExtension::Result FINALIZE(dmExtension::Params *params) {
+void ScreenRecorder_finalize(lua_State *L) {
 	delete sr;
-	return dmExtension::RESULT_OK;
 }
-
-DECLARE_DEFOLD_EXTENSION
 
 #endif

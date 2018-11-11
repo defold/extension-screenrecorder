@@ -1,22 +1,22 @@
 #if defined(DM_PLATFORM_ANDROID)
 
+// On Android a so called Surface Input video encoding is used. Main part is done in Java and JNI is used to glue C++ and Java worlds.
+// Surface Input accepts a separate OpenGL ES context, the extension draws a quad model with video frame texture to this context and it's recorderd
+// to a video file by Android OS.
+
 #define EGL_EGLEXT_PROTOTYPES 1
 #define GL_GLEXT_PROTOTYPES 1
 
 #include <android/native_window_jni.h>
 #include <dmsdk/sdk.h>
+#include <dmsdk/dlib/log.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#include <jnlua.h>
 
-#include "extension.h"
-
-#ifdef DLIB_LOG_DOMAIN
-#undef DLIB_LOG_DOMAIN
-#endif
-#define DLIB_LOG_DOMAIN EXTENSION_NAME_STRING
-#include <dmsdk/dlib/log.h>
+#include "screenrecorder_private.h"
+#include "android/java_lua.h"
 
 #define EGL_RECORDABLE_ANDROID 0x3142
 
@@ -72,18 +72,20 @@ static float quad_model[] = {
 };
 
 // Cache references.
-static jobject lua_loader_object = NULL;
-static jmethodID lua_loader_finalize = NULL;
-static jmethodID lua_loader_update = NULL;
-static jmethodID lua_loader_get_encoder_surface = NULL;
-static jobject lua_state_object = NULL;
-static jmethodID lua_state_close = NULL;
 static jobject java_surface_object = NULL;
+static jobject screen_recorder_object = NULL;
+static jmethodID screen_recorder_finalize = NULL;
+static jmethodID screen_recorder_update = NULL;
+static jmethodID screen_recorder_get_encoder_surface = NULL;
+static jmethodID screen_recorder_init = NULL;
+static jmethodID screen_recorder_start = NULL;
+static jmethodID screen_recorder_stop = NULL;
+static jmethodID screen_recorder_mux_audio_video = NULL;
 
 static bool get_encoder_surface() {
 	ThreadAttacher attacher;
 	JNIEnv *env = attacher.env;
-	java_surface_object = (jobject)env->NewGlobalRef(env->CallObjectMethod(lua_loader_object, lua_loader_get_encoder_surface));
+	java_surface_object = (jobject)env->NewGlobalRef(env->CallObjectMethod(screen_recorder_object, screen_recorder_get_encoder_surface));
 	if (java_surface_object == NULL) {
 		dmLogError("Failed to get native java surface.");
 		return false;
@@ -97,59 +99,14 @@ static bool get_encoder_surface() {
 	return true;
 }
 
-static int extension_get_info(lua_State *L) {
-	lua_createtable(L, 0, 5);
-
-	lua_pushstring(L, (const char*)glGetString(GL_VERSION));
-	lua_setfield(L, -2, "version");
-
-	lua_pushstring(L, (const char*)glGetString(GL_VENDOR));
-	lua_setfield(L, -2, "vendor");
-
-	lua_pushstring(L, (const char*)glGetString(GL_RENDERER));
-	lua_setfield(L, -2, "renderer");
-
-	lua_pushstring(L, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
-	lua_setfield(L, -2, "shading_language_version");
-
-	lua_pushstring(L, (const char*)glGetString(GL_EXTENSIONS));
-	lua_setfield(L, -2, "extensions");
-
-	return 1;
-}
-
-extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_LuaLoader_start_1native(JNIEnv *env, jobject instance) {
+// When screenrecorder.start() is called, the Java part calls this function to indicate a succesful start.
+extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_ScreenRecorder_start_1native(JNIEnv *env, jobject instance) {
 	is_recording = true;
 	frame_index = 0;
-
-	dmLogInfo("encoder_surface width: %d.", ANativeWindow_getWidth(encoder_surface));
-	dmLogInfo("encoder_surface height: %d.", ANativeWindow_getHeight(encoder_surface));
-	dmLogInfo("encoder_surface format: %d.", ANativeWindow_getFormat(encoder_surface));
-
-	EGLint value;
-	if (!eglQuerySurface(egl_display, egl_surface, EGL_WIDTH, &value)) {
-		dmLogError("EGL: Failed to querry surface: %d." , eglGetError());
-	} else {
-		dmLogInfo("EGL: Surface width: %d.", value);
-	}
-	if (!eglQuerySurface(egl_display, egl_surface, EGL_HEIGHT, &value)) {
-		dmLogError("EGL: Failed to querry surface: %d." , eglGetError());
-	} else {
-		dmLogInfo("EGL: Surface height: %d.", value);
-	}
-	if (!eglQuerySurface(egl_display, egl_surface, EGL_RENDER_BUFFER, &value)) {
-		dmLogError("EGL: Failed to querry surface: %d." , eglGetError());
-	} else {
-		dmLogInfo("EGL: Surface EGL_RENDER_BUFFER: %d.", value);
-	}
-	if (!eglQuerySurface(egl_display, egl_surface, EGL_SWAP_BEHAVIOR, &value)) {
-		dmLogError("EGL: Failed to querry surface: %d." , eglGetError());
-	} else {
-		dmLogInfo("EGL: Surface EGL_SWAP_BEHAVIOR: %d.", value);
-	}
 }
 
-extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_LuaLoader_stop_1native(JNIEnv *env, jobject instance) {
+// When screenrecorder.stop() is called, the Java part calls this function to perform a clean up.
+extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_ScreenRecorder_stop_1native(JNIEnv *env, jobject instance) {
 	is_recording = false;
 	is_ready = false;
 	if (egl_surface != EGL_NO_SURFACE) {
@@ -174,62 +131,6 @@ extern "C" JNIEXPORT void JNICALL Java_extension_screenrecorder_LuaLoader_stop_1
 		glDeleteBuffers(1, &vertex_buffer);
 		GLenum error = glGetError(); if (error) dmLogError("glDeleteBuffers: %d", error);
 	}
-}
-
-static int extension_is_recording(lua_State *L) {
-	lua_pushboolean(L, is_recording);
-	return 1;
-}
-
-static int extension_capture_frame(lua_State *L) {
-	if (is_recording) {
-		if (!eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context)) {
-			dmLogError("EGL: Failed to switch to screenrecorder surface: %d." , eglGetError());
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		GLenum error = glGetError(); if (error) dmLogError("glBindBuffer: %d", error);
-
-		glEnableVertexAttribArray(position_attrib);
-		error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray position_attrib: %d", error);
-		glEnableVertexAttribArray(texcoord_attrib);
-		error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray texcoord_attrib: %d", error);
-
-		glBindTexture(GL_TEXTURE_2D, defold_texture_id);
-
-		glUseProgram(shader_program);
-		error = glGetError(); if (error) dmLogError("glUseProgram: %d", error);
-
-		GLint scale_uniform = glGetUniformLocation(shader_program, "scale");
-		error = glGetError(); if (error) dmLogError("glGetUniformLocation scale: %d", error);
-		glUniform2f(scale_uniform, x_scale, y_scale);
-		error = glGetError(); if (error) dmLogError("glUniform2f scale: %d", error);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		error = glGetError(); if (error) dmLogError("glDrawArrays: %d", error);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glDisableVertexAttribArray(position_attrib);
-		error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray position_attrib: %d", error);
-		glDisableVertexAttribArray(texcoord_attrib);
-		error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray texcoord_attrib: %d", error);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		error = glGetError(); if (error) dmLogError("glBindBuffer 0: %d", error);
-		// Missing symbol.
-		//if (!eglPresentationTimeANDROID(egl_display, egl_surface, frame_index * 16666666)) {
-		//	dmLogError("EGL: Failed to set presentation time: %d." , eglGetError());
-		//}
-		if (!eglSwapBuffers(egl_display, egl_surface)) {
-			dmLogError("EGL: Failed to swap buffers: %d." , eglGetError());
-		}
-		++frame_index;
-		defold_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
-		if (!eglMakeCurrent(egl_display, defold_egl_surface, defold_egl_surface, defold_egl_context)) {
-			dmLogError("EGL: Failed to switch to defold surface: %d." , eglGetError());
-		}
-	}
-	return 0;
 }
 
 static bool init_gl() {
@@ -317,7 +218,8 @@ static bool init_gl() {
 	return true;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_init_1native(JNIEnv *env, jobject instance, jint _width, jint _height, jlong render_target, jdouble _x_scale, jdouble _y_scale) {
+// When screenrecorder.init() is called, the Java part calls this function to finish initialization.
+extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_ScreenRecorder_init_1native(JNIEnv *env, jobject instance, jint _width, jint _height, jlong render_target, jdouble _x_scale, jdouble _y_scale) {
 	width = _width;
 	height = _height;
 	x_scale = _x_scale;
@@ -386,6 +288,7 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 		}
 	}
 
+	// Pass defold_egl_context to the newly createad egl_context to share OpenGL instances, render target texture in particular.
 	egl_context = eglCreateContext(egl_display, egl_config, defold_egl_context, context_attrib_list);
 	if (egl_context == EGL_NO_CONTEXT) {
 		dmLogError("EGL: Failed to create context: %d.", eglGetError());
@@ -398,8 +301,6 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 		return false;
 	}
 
-	dmLogInfo("Successfully initialized EGL.");
-
 	if (!init_gl()) {
 		return false;
 	}
@@ -408,93 +309,154 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_LuaLoader_in
 	return true;
 }
 
-dmExtension::Result APP_INITIALIZE(dmExtension::AppParams *params) {
-	return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result APP_FINALIZE(dmExtension::AppParams *params) {
-	// Mention JNLua exports so they don't get optimized away.
-	if (params == NULL) {
-		Java_com_naef_jnlua_LuaState_lua_1version(NULL, NULL);
+int ScreenRecorder_init(lua_State *L) {
+	int result = 0;
+	if (screen_recorder_object != NULL) {
+		ThreadAttacher attacher;
+		result = attacher.env->CallIntMethod(screen_recorder_object, screen_recorder_init, (jlong)L);
 	}
-	return dmExtension::RESULT_OK;
+	return result;
 }
 
-dmExtension::Result INITIALIZE(dmExtension::Params *params) {
-	lua_State *L = params->m_L;
+int ScreenRecorder_start(lua_State *L) {
+	int result = 0;
+	if (screen_recorder_object != NULL) {
+		ThreadAttacher attacher;
+		result = attacher.env->CallIntMethod(screen_recorder_object, screen_recorder_start, (jlong)L);
+	}
+	return result;
+}
+
+int ScreenRecorder_stop(lua_State *L) {
+	int result = 0;
+	if (screen_recorder_object != NULL) {
+		ThreadAttacher attacher;
+		result = attacher.env->CallIntMethod(screen_recorder_object, screen_recorder_stop, (jlong)L);
+	}
+	return result;
+}
+
+int ScreenRecorder_mux_audio_video(lua_State *L) {
+	int result = 0;
+	if (screen_recorder_object != NULL) {
+		ThreadAttacher attacher;
+		result = attacher.env->CallIntMethod(screen_recorder_object, screen_recorder_mux_audio_video, (jlong)L);
+	}
+	return result;
+}
+
+int ScreenRecorder_capture_frame(lua_State *L) {
+	if (is_recording) {
+		if (!eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context)) {
+			dmLogError("EGL: Failed to switch to screenrecorder surface: %d." , eglGetError());
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		GLenum error = glGetError(); if (error) dmLogError("glBindBuffer: %d", error);
+
+		glEnableVertexAttribArray(position_attrib);
+		error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray position_attrib: %d", error);
+		glEnableVertexAttribArray(texcoord_attrib);
+		error = glGetError(); if (error) dmLogError("glEnableVertexAttribArray texcoord_attrib: %d", error);
+
+		glBindTexture(GL_TEXTURE_2D, defold_texture_id);
+
+		glUseProgram(shader_program);
+		error = glGetError(); if (error) dmLogError("glUseProgram: %d", error);
+
+		GLint scale_uniform = glGetUniformLocation(shader_program, "scale");
+		error = glGetError(); if (error) dmLogError("glGetUniformLocation scale: %d", error);
+		glUniform2f(scale_uniform, x_scale, y_scale);
+		error = glGetError(); if (error) dmLogError("glUniform2f scale: %d", error);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		error = glGetError(); if (error) dmLogError("glDrawArrays: %d", error);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glDisableVertexAttribArray(position_attrib);
+		error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray position_attrib: %d", error);
+		glDisableVertexAttribArray(texcoord_attrib);
+		error = glGetError(); if (error) dmLogError("glDisableVertexAttribArray texcoord_attrib: %d", error);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		error = glGetError(); if (error) dmLogError("glBindBuffer 0: %d", error);
+		// Missing symbol.
+		//if (!eglPresentationTimeANDROID(egl_display, egl_surface, frame_index * 16666666)) {
+		//	dmLogError("EGL: Failed to set presentation time: %d." , eglGetError());
+		//}
+		if (!eglSwapBuffers(egl_display, egl_surface)) {
+			dmLogError("EGL: Failed to swap buffers: %d." , eglGetError());
+		}
+		++frame_index;
+		defold_egl_surface = dmGraphics::GetNativeAndroidEGLSurface();
+		if (!eglMakeCurrent(egl_display, defold_egl_surface, defold_egl_surface, defold_egl_context)) {
+			dmLogError("EGL: Failed to switch to defold surface: %d." , eglGetError());
+		}
+	}
+	return 0;
+}
+
+int ScreenRecorder_is_recording(lua_State *L) {
+	lua_pushboolean(L, is_recording);
+	return 1;
+}
+int ScreenRecorder_is_preview_available(lua_State *L) {
+	lua_pushboolean(L, false);
+	return 1;
+}
+
+int ScreenRecorder_show_preview(lua_State *L) {
+	return 0;
+}
+
+void ScreenRecorder_initialize(lua_State *L) {
+	// Mention java_lua.h exports so they don't get optimized away.
+	if (L == NULL) {
+		Java_extension_screenrecorder_Lua_lua_1registryindex(NULL, NULL, 0);
+		Java_extension_screenrecorder_Lua_lua_1gettop(NULL, NULL, 0);
+	}
 	ThreadAttacher attacher;
 	JNIEnv *env = attacher.env;
 	ClassLoader class_loader = ClassLoader(env);
 
-	// Prepare LuaState of JNLua with an actual Lua state.
-	jclass lua_state_class = class_loader.load("com/naef/jnlua/LuaState");
-	jmethodID lua_state_constructor = env->GetMethodID(lua_state_class, "<init>", "(J)V");
-	lua_state_close = env->GetMethodID(lua_state_class, "close", "()V");
-	lua_state_object = (jobject)env->NewGlobalRef(env->NewObject(lua_state_class, lua_state_constructor, (jlong)params->m_L));
-
-	// Invoke LuaLoader from the extension.
-	jclass lua_loader_class = class_loader.load("extension/" EXTENSION_NAME_STRING "/LuaLoader");
-	if (lua_loader_class == NULL) {
-		dmLogError("lua_loader_class is NULL");
+	// Invoke ScreenRecorder from the Java extension.
+	jclass screen_recorder_class = class_loader.load("extension/" EXTENSION_NAME_STRING "/ScreenRecorder");
+	if (screen_recorder_class == NULL) {
+		dmLogError("screen_recorder_class is NULL");
 	}
-	jmethodID lua_loader_constructor = env->GetMethodID(lua_loader_class, "<init>", "(Landroid/app/Activity;)V");
-	jmethodID lua_loader_invoke = env->GetMethodID(lua_loader_class, "invoke", "(Lcom/naef/jnlua/LuaState;)I");
-	lua_loader_finalize = env->GetMethodID(lua_loader_class, "extension_finalize", "(Lcom/naef/jnlua/LuaState;)V");
-	lua_loader_update = env->GetMethodID(lua_loader_class, "update", "(Lcom/naef/jnlua/LuaState;)V");
-	lua_loader_get_encoder_surface = env->GetMethodID(lua_loader_class, "get_encoder_surface", "()Landroid/view/Surface;");
-	lua_loader_object = (jobject)env->NewGlobalRef(env->NewObject(lua_loader_class, lua_loader_constructor, dmGraphics::GetNativeAndroidActivity()));
-	if (lua_loader_object == NULL) {
-		dmLogError("lua_loader_object is NULL");
+	jmethodID screen_recorder_constructor = env->GetMethodID(screen_recorder_class, "<init>", "(Landroid/app/Activity;)V");
+	screen_recorder_init = env->GetMethodID(screen_recorder_class, "init", "(J)I");
+	screen_recorder_start = env->GetMethodID(screen_recorder_class, "start", "(J)I");
+	screen_recorder_stop = env->GetMethodID(screen_recorder_class, "stop", "(J)I");
+	screen_recorder_mux_audio_video = env->GetMethodID(screen_recorder_class, "mux_audio_video", "(J)I");
+	screen_recorder_finalize = env->GetMethodID(screen_recorder_class, "extension_finalize", "(J)V");
+	screen_recorder_update = env->GetMethodID(screen_recorder_class, "update", "(J)V");
+	screen_recorder_get_encoder_surface = env->GetMethodID(screen_recorder_class, "get_encoder_surface", "()Landroid/view/Surface;");
+	screen_recorder_object = (jobject)env->NewGlobalRef(env->NewObject(screen_recorder_class, screen_recorder_constructor, dmGraphics::GetNativeAndroidActivity()));
+	if (screen_recorder_object == NULL) {
+		dmLogError("screen_recorder_object is NULL");
 	}
-	int result = (int)env->CallIntMethod(lua_loader_object, lua_loader_invoke, lua_state_object);
-	if (result > 0) {
-		lua_pop(L, result);
-	}
-
-	lua_getglobal(L, EXTENSION_NAME_STRING);
-
-	lua_pushcfunction(L, extension_capture_frame);
-	lua_setfield(L, -2, "capture_frame");
-
-	lua_pushcfunction(L, extension_get_info);
-	lua_setfield(L, -2, "get_info");
-
-	lua_pushcfunction(L, extension_is_recording);
-	lua_setfield(L, -2, "is_recording");
-
-	lua_pop(L, 1);
-
-	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result UPDATE(dmExtension::Params *params) {
-	if (lua_loader_object != NULL) {
+void ScreenRecorder_update(lua_State *L) {
+	if (screen_recorder_object != NULL) {
 		ThreadAttacher attacher;
 		// Update the Java side so it can invoke any pending listeners.
-		attacher.env->CallVoidMethod(lua_loader_object, lua_loader_update, lua_state_object);
+		attacher.env->CallVoidMethod(screen_recorder_object, screen_recorder_update, (jlong)L);
 	}
-	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result FINALIZE(dmExtension::Params *params) {
+void ScreenRecorder_finalize(lua_State *L) {
 	ThreadAttacher attacher;
-	if (lua_loader_object != NULL) {
-		attacher.env->CallVoidMethod(lua_loader_object, lua_loader_finalize, lua_state_object);
-		attacher.env->DeleteGlobalRef(lua_loader_object);
-	}
-	if (lua_state_object != NULL) {
-		attacher.env->CallVoidMethod(lua_state_object, lua_state_close);
-		attacher.env->DeleteGlobalRef(lua_state_object);
+	if (screen_recorder_object != NULL) {
+		attacher.env->CallVoidMethod(screen_recorder_object, screen_recorder_finalize, (jlong)L);
+		attacher.env->DeleteGlobalRef(screen_recorder_object);
 	}
 	if (java_surface_object != NULL) {
 		attacher.env->DeleteGlobalRef(java_surface_object);
 	}
-	lua_loader_object = NULL;
-	lua_state_object = NULL;
+	screen_recorder_object = NULL;
 	java_surface_object = NULL;
-	return dmExtension::RESULT_OK;
 }
-
-DECLARE_DEFOLD_EXTENSION
 
 #endif

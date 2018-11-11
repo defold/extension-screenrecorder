@@ -120,7 +120,7 @@ function _M.toggle()
 			screenrecorder.start()
 		end
 	else
-		print('stopping recording.')
+		print('Stopping recording.')
 		screenrecorder.stop()
 		-- Reinit is required each time.
 		is_screenrecorder_init = false

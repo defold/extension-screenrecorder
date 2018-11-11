@@ -7,8 +7,9 @@
 	#include <sys/time.h>
 #endif
 
-#include "sdk.h"
-#include "../extension.h"
+#include <dmsdk/sdk.h>
+#include <dmsdk/dlib/log.h>
+#include "../screenrecorder_private.h"
 
 #define ERROR_MESSAGE(format, ...) snprintf(error_message, 2048, format, ##__VA_ARGS__)
 

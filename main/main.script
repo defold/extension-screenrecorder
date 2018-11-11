@@ -2,6 +2,10 @@ local camera = require('libs.camera')
 
 -- In this script just tell the tank and the ground where is the light source.
 
+-- Capturing is implemented in libs/recording.lua, and it's called from main/tank_base.script on R press or REC button click.
+-- Hit recording once for initialization, hit again to start the recording and hit once more to stop the recording.
+-- After each recording you have to init again.
+
 function init(self)
 	local position = go.get_position('/light')
 	local light = vmath.vector4(position.x, position.y, position.z, 0)
@@ -16,15 +20,4 @@ function init(self)
 
 	go.set_position(vmath.vector3(camera.width_p2 / 2, camera.height_p2 / 2, 0), '/postprocessing')
 	go.set_scale(vmath.vector3(camera.width_p2 / 2, camera.height_p2 / 2, 1), '/postprocessing')
-
-	screenrecorder.enable_debug()
-	local info = screenrecorder.get_info()
-	print('version', info.version)
-	print('vendor', info.vendor)
-	print('renderer', info.renderer)
-	print('shading_language_version', info.shading_language_version)
-	print('extensions:')
-	for ext in string.gmatch(info.extensions, '%S+') do
-		print('', ext)
-	end
 end
