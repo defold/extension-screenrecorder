@@ -1,4 +1,4 @@
-local camera = require('libs.camera')
+local camera = require('example.modules.camera')
 
 local frame_skip = false
 local rec_blink_i = 0

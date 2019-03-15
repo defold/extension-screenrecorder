@@ -1,6 +1,6 @@
 components {
   id: "script"
-  component: "/main/meteor.script"
+  component: "/old_example/main/meteor.script"
   position {
     x: 0.0
     y: 0.0
@@ -16,9 +16,9 @@ components {
 embedded_components {
   id: "model"
   type: "model"
-  data: "mesh: \"/models/dae/meteor.dae\"\n"
-  "material: \"/render/model.material\"\n"
-  "textures: \"/models/textures/meteor.png\"\n"
+  data: "mesh: \"/old_example/models/dae/meteor.dae\"\n"
+  "material: \"/old_example/render/model.material\"\n"
+  "textures: \"/old_example/models/textures/meteor.png\"\n"
   "skeleton: \"\"\n"
   "animations: \"\"\n"
   "default_animation: \"\"\n"

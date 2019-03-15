@@ -1,7 +1,8 @@
-name: "postprocessing"
-tags: "postprocessing"
-vertex_program: "/render/ui.vp"
-fragment_program: "/render/ui.fp"
+name: "ui"
+tags: "ui"
+vertex_program: "/old_example/render/ui.vp"
+fragment_program: "/old_example/render/ui.fp"
+vertex_space: VERTEX_SPACE_WORLD
 vertex_constants {
   name: "mtx_view"
   type: CONSTANT_TYPE_VIEW

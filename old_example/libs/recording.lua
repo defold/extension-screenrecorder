@@ -24,15 +24,6 @@ function _M.toggle()
 
 	local video_ext = is_desktop and 'webm' or 'mp4'
 	local audio_ext = is_desktop and 'webm' or 'aac'
-	
-	-- Temporary audio track file, saved from resources.
-	if not audio_filename then
-		local audio_content = sys.load_resource('/resources/audio.' .. audio_ext)
-		audio_filename = directories.path_for_file('audio.' .. audio_ext, directories.documents)
-		local audio_file = io.open(audio_filename, 'wb')
-		audio_file:write(audio_content)
-		audio_file:close()
-	end
 
 	-- Temporary video track file.
 	local video_filename = directories.path_for_file('video.' .. video_ext, directories.documents)
@@ -120,7 +111,7 @@ function _M.toggle()
 			screenrecorder.start()
 		end
 	else
-		print('Stopping recording.')
+		print('Stopping recording.', video_filename)
 		screenrecorder.stop()
 		-- Reinit is required each time.
 		is_screenrecorder_init = false

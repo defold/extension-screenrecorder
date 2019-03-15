@@ -1,6 +1,6 @@
 components {
   id: "script"
-  component: "/main/shell.script"
+  component: "/old_example/main/shell.script"
   position {
     x: 0.0
     y: 0.0
@@ -16,9 +16,9 @@ components {
 embedded_components {
   id: "model"
   type: "model"
-  data: "mesh: \"/models/dae/shell.dae\"\n"
-  "material: \"/render/model.material\"\n"
-  "textures: \"/models/textures/shell.png\"\n"
+  data: "mesh: \"/old_example/models/dae/shell.dae\"\n"
+  "material: \"/old_example/render/model.material\"\n"
+  "textures: \"/old_example/models/textures/shell.png\"\n"
   "skeleton: \"\"\n"
   "animations: \"\"\n"
   "default_animation: \"\"\n"
