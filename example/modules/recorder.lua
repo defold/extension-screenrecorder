@@ -111,11 +111,9 @@ local function files_init()
 	audio_file:close()
 end
 
-function M.init(params)
-	if not screenrecorder then log("screenrecorder module do not exist.") return end
+function M.fill_defaulf_params(params)
+	params = params or M.params
 
-	params = params or {}
-	
 	if is_first_init then
 		files_init()
 	end
@@ -123,7 +121,7 @@ function M.init(params)
 	M.params.listener = listener
 	video_filename = params.filename or video_filename
 	M.params.filename = video_filename
-	
+
 	M.params.iframe = params.iframe or 1 
 	M.params.duration = params.duration or nil
 	M.params.bitrate = params.bitrate or 2 * 1024 * 1024
@@ -135,14 +133,14 @@ function M.init(params)
 		M.params.width = params.width or 1280
 		M.params.height = params.height or 720
 	end
-	
+
 	if M.platform.is_ios then
 		M.params.enable_preview = params.enable_preview or false
-		M.params.scaling = params.scaling or screenrecorder.SCALING_RESIZE_ASPECT 
+		M.params.scaling = params.scaling and screenrecorder[params.scaling] or screenrecorder.SCALING_RESIZE_ASPECT
 		--[[screenrecorder.SCALING_FIT, 
-			screenrecorder.SCALING_RESIZE_ASPECT,
-			screenrecorder.SCALING_RESIZE, 
-			screenrecorder.SCALING_RESIZE_ASPECT_FILL]]--
+		screenrecorder.SCALING_RESIZE_ASPECT,
+		screenrecorder.SCALING_RESIZE, 
+		screenrecorder.SCALING_RESIZE_ASPECT_FILL]]--
 	else
 		M.params.render_target = params.render_target or nil
 		M.params.x_scale = params.x_scale or 1
@@ -150,10 +148,17 @@ function M.init(params)
 		M.params.fps = params.fps or 30
 		record_frame_every_ms = round(1/M.params.fps, 3)
 	end
-	
+
 	if M.platform.is_desktop then
 		M.params.async_encoding = params.async_encoding or false
 	end
+	return params
+end
+
+function M.init(params)
+	if not screenrecorder then log("screenrecorder module do not exist.") return end
+
+	params = M.fill_defaulf_params(params)
 	
 	log("Initializing the screenrecorder.")
 	screenrecorder.init(M.params)

@@ -104,6 +104,7 @@ function init(self)
 		init_for_video_recorder(self)
 	end
 	self.dt = socket.gettime()
+	--VIDEORECORDER: -end
 end
 
 function update(self, dt)
@@ -146,6 +147,7 @@ function update(self, dt)
 		render.enable_texture(0, camera.render_target, render.BUFFER_COLOR_BIT)
 		render.draw(self.render_target_pred)
 		render.disable_texture(0, camera.render_target)
+		--VIDEORECORDER:--end
 	else
 		render.draw(self.tile_pred)
 		render.draw(self.particle_pred)
@@ -187,8 +189,5 @@ function on_message(self, message_id, message)
 		self.near = message.near or -1
 		self.far = message.far or 1
 		self.projection_fn = fixed_fit_projection
-	elseif message_id == hash("window_resized") then
-		--VIDEORECORDER: update render target when window resized
-		init_for_video_recorder(self)
 	end
 end
