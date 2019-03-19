@@ -1,6 +1,8 @@
 #include <jni.h>
 
 extern "C" {
+	void JNICALL Java_extension_screenrecorder_Lua_lua_1dmscript_1getinstance(JNIEnv *env, jobject obj, jlong L);
+	void JNICALL Java_extension_screenrecorder_Lua_lua_1dmscript_1setinstance(JNIEnv *env, jobject obj, jlong L);
 	jint JNICALL Java_extension_screenrecorder_Lua_lua_1registryindex(JNIEnv *env, jobject obj, jlong L);
 	void JNICALL Java_extension_screenrecorder_Lua_lua_1call(JNIEnv *env, jobject obj, jlong L, jint nargs, jint nresults);
 	void JNICALL Java_extension_screenrecorder_Lua_lua_1error(JNIEnv *env, jobject obj, jlong L, jstring s);
