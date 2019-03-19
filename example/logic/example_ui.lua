@@ -21,6 +21,7 @@ M.func_mux = nil
 M.func_share = nil
 M.func_download = nil
 M.func_error = nil
+M.func_preview= nil
 
 function M.show_post_record_options(self, no_mux)
 	if not no_mux then 
@@ -41,8 +42,8 @@ function M.record_end(self)
 	gui.set_enabled(self.btn_stop, false)
 end
 
-function M.show_preview(self)
-	gui.set_enabled(self.btn_preview, true)
+function M.show_preview(self, is_show)
+	gui.set_enabled(self.btn_preview, is_show)
 end
 
 function M.recorder_inited(self)
@@ -232,6 +233,9 @@ function M.on_input(self, action_id, action)
 		end)
 		dirtylarry.button("options", action_id, action, function() 
 			show_options(self)
+		end)
+		dirtylarry.button("preview", action_id, action, function() 
+			M.func_preview(self)
 		end)
 	elseif self.current_state == STATE_ERROR then
 		dirtylarry.button("error", action_id, action, function() 
