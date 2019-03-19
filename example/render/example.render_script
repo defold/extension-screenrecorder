@@ -108,11 +108,6 @@ function init(self)
 end
 
 function update(self, dt)
-	--TODO:remove dt calculation
-	local ndt = socket.gettime()
-	dt = ndt - self.dt
-	self.dt = ndt
-	
 	render.set_depth_mask(true)
 	render.set_stencil_mask(0xff)
 	render.clear(self.clear_params)

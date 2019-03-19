@@ -224,11 +224,8 @@ function M.capture_frame(dt)
 	if M.IS_NEED_RENDER_TAGET then
 		sec_from_last_frame = sec_from_last_frame + dt
 		if sec_from_last_frame >= record_frame_every_ms then
-			print("record ", dt, sec_from_last_frame, record_frame_every_ms)
 			screenrecorder.capture_frame()
 			sec_from_last_frame = 0
-		else
-			print("try ", dt)
 		end
 	end
 end
