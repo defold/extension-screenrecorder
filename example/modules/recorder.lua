@@ -27,6 +27,9 @@ local output_filename = nil
 -- Temporary audio track file, saved from resources.
 local audio_filename = nil
 
+local external_listener = nil
+local _self =nil
+
 local record_frame_every_sec = 0
 local sec_from_last_frame = 0
 
@@ -54,34 +57,12 @@ local function listener(event)
 	elseif event.phase == 'recorded' then
 		if not event.is_error then
 			log('Saved the recording. ', video_filename)
-			--TODO:remove
-			--[[if screenrecorder.is_preview_available() then
-				print('Screenrecorder showing preview.')
-				screenrecorder.show_preview()
-			else
-				screenrecorder.mux_audio_video{
-					audio_filename = audio_filename,
-					video_filename = video_filename,
-					filename = output_filename
-				}
-			end]]--
 		else
 			log('Failed to save the recording: ', event.error_message)
 		end
 	elseif event.phase == 'muxed' then
 		if not event.is_error then
 			log('Muxed audio and video tracks.')
-			--TODO:remove
-			if is_html5 then
-				-- On HTML5 save the file to the computer.
-				directories.download_file(output_filename)
-			elseif is_desktop then
-				-- On desktop just log out file location.
-				log('Video saved: ' .. output_filename)
-			else
-				-- On mobiles use native share dialog.
-				share.file(output_filename)
-			end
 		else
 			log('Failed to mux audio and video tracks: ', event.error_message)
 		end
@@ -91,6 +72,10 @@ local function listener(event)
 		else
 			log('Preview is closed.')
 		end
+	end
+	
+	if external_listener then
+		external_listener(_self, event)
 	end
 end
 
@@ -109,6 +94,11 @@ local function files_init()
 	local audio_file = io.open(audio_filename, 'wb')
 	audio_file:write(audio_content)
 	audio_file:close()
+end
+
+function M.register_listener(self, listener)
+	external_listener = listener
+	_self = self
 end
 
 function M.fill_defaulf_params(params)

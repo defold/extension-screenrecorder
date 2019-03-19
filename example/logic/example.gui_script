@@ -3,10 +3,55 @@ local camera = require('example.modules.camera')
 
 local example_ui = require('example.logic.example_ui')
 
-local function start_record(self)
+local function init_recorder(self)
 	self.params.render_target = camera.render_target
 	recorder.init(self.params)
+end
+
+local function start_record(self)
 	recorder.start_record()
+end
+
+local function stop_record(self)
+	recorder.stop_record()
+end
+
+local function mux_video(self)
+	recorder.mux_audio_video()
+end
+
+local function share_video(self)
+end
+
+local function recorder_listener(self, event)
+	if event.is_error then
+		--TODO: turn on error ui
+		print("err")
+		return
+	end
+	if event.phase == 'init' then
+		example_ui.recorder_inited(self)
+	elseif event.phase == 'recorded' then
+		example_ui.show_post_record_options(self)
+		if screenrecorder.is_preview_available() then
+			example_ui.show_preview(self)
+		end
+	elseif event.phase == 'muxed' then
+		log('Muxed audio and video tracks.')
+		--TODO:remove
+		if is_html5 then
+			-- On HTML5 save the file to the computer.
+			directories.download_file(output_filename)
+		elseif is_desktop then
+			-- On desktop just log out file location.
+			log('Video saved: ' .. output_filename)
+		else
+			-- On mobiles use native share dialog.
+			share.file(output_filename)
+		end
+	elseif event.phase == 'preview' then
+		log('Preview ended with actions: ', table.concat(event.actions, ', '), '.')
+	end
 end
 
 function init(self)
@@ -16,11 +61,17 @@ function init(self)
 	msg.post("@render:", hash("use_fixed_fit_projection"))
 
 	recorder.fill_defaulf_params()
+	recorder.register_listener(self, recorder_listener)
 
-	-- all ui specific things in example_ui.lua
-	-- 
+	-- all UI specific things are hidden in example_ui.lua
+	-- example.gui_script contain only screenrecording related logic
+	
 	example_ui.init(self)
 	example_ui.func_start_record = start_record
+	example_ui.func_init_recorder = init_recorder
+	example_ui.func_stop_record = stop_record
+	example_ui.func_mux = mux_video
+	example_ui.func_share = share_video
 end
 
 function on_input(self, action_id, action)
