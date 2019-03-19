@@ -165,11 +165,11 @@ function M.on_input(self, action_id, action)
 			--gui not ios
 			local ipt = dirtylarry.input("inp_xscale", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, self.cfg_xscale)
 			if ipt.out_now then
-				self.params.xscale = tonumber(ipt.text)
+				self.params.x_scale = tonumber(ipt.text)
 			end
 			ipt = dirtylarry.input("inp_yscale", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, self.cfg_yscale)
 			if ipt.out_now then
-				self.params.yscale = tonumber(ipt.text)
+				self.params.y_scale = tonumber(ipt.text)
 			end
 			ipt = dirtylarry.input("inp_fps", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, self.cfg_fps)
 			if ipt.out_now then
