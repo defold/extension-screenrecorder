@@ -1,5 +1,6 @@
 local recorder = require('example.modules.recorder')
 local camera = require('example.modules.camera')
+local share = require('example.modules.sharing')
 
 local example_ui = require('example.logic.example_ui')
 
@@ -21,6 +22,13 @@ local function mux_video(self)
 end
 
 local function share_video(self)
+	local file_for_mux = self.is_muxed and recorder.get_muxed_file_path() or recorder.get_video_file_path()
+	share.send(file_for_mux)
+end
+
+local function download_video(self)
+	local file_for_download = self.is_muxed and recorder.get_muxed_file_path() or recorder.get_video_file_path()
+	directories.download_file(file_for_download)
 end
 
 local function recorder_listener(self, event)
@@ -37,20 +45,10 @@ local function recorder_listener(self, event)
 			example_ui.show_preview(self)
 		end
 	elseif event.phase == 'muxed' then
-		log('Muxed audio and video tracks.')
-		--TODO:remove
-		if is_html5 then
-			-- On HTML5 save the file to the computer.
-			directories.download_file(output_filename)
-		elseif is_desktop then
-			-- On desktop just log out file location.
-			log('Video saved: ' .. output_filename)
-		else
-			-- On mobiles use native share dialog.
-			share.file(output_filename)
-		end
+		self.is_muxed = true
+		example_ui.show_post_record_options(self, true)
 	elseif event.phase == 'preview' then
-		log('Preview ended with actions: ', table.concat(event.actions, ', '), '.')
+		
 	end
 end
 
@@ -72,6 +70,7 @@ function init(self)
 	example_ui.func_stop_record = stop_record
 	example_ui.func_mux = mux_video
 	example_ui.func_share = share_video
+	example_ui.func_download = download_video
 end
 
 function on_input(self, action_id, action)

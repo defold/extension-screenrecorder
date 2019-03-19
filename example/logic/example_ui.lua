@@ -18,16 +18,24 @@ M.func_init_recorder = nil
 M.func_stop_record = nil
 M.func_mux = nil
 M.func_share = nil
+M.func_download = nil
 
-function M.show_post_record_options(self)
-	gui.set_enabled(self.btn_mux, true)
-	if share.is_avaliable() then
-		gui.set_enabled(self.btn_share, true)
+function M.show_post_record_options(self, no_mux)
+	if not no_mux then 
+		gui.set_enabled(self.btn_mux, true)
 	end
+	gui.set_enabled(self.btn_options, true)
+	if not recorder.platform.is_html5 then
+		if share.is_avaliable() then
+			gui.set_enabled(self.btn_share, true)
+		end
+	else
+		gui.set_enabled(self.btn_download, true)
+	end
+	self.current_state = STATE_POST_RECORD
 end
 
 function M.record_end(self)
-	self.current_state = STATE_POST_RECORD
 	gui.set_enabled(self.btn_stop, false)
 end
 
@@ -66,11 +74,13 @@ function M.init(self)
 	self.btn_share = gui.get_node("share/bg")
 	self.btn_preview = gui.get_node("preview/bg")
 	self.btn_init = gui.get_node("init/bg")
+	self.btn_download = gui.get_node("download/bg")
 
 	gui.set_enabled(self.btn_stop, false)
 	gui.set_enabled(self.btn_mux, false)
 	gui.set_enabled(self.btn_share, false)
 	gui.set_enabled(self.btn_preview, false)
+	gui.set_enabled(self.btn_download, false)
 
 	self.opt_screen = gui.get_node("options_scr")
 	self.scr_ios = gui.get_node("ios")
@@ -84,11 +94,16 @@ function M.init(self)
 end
 
 
-local function show_options(self, state)
-	self.current_state = state
+local function show_options(self)
+	self.current_state = STATE_OPTIONS_MENU
 	gui.set_enabled(self.opt_screen, true)
 	gui.set_enabled(self.btn_init, true)
 	gui.set_enabled(self.btn_options, false)
+	gui.set_enabled(self.btn_stop, false)
+	gui.set_enabled(self.btn_mux, false)
+	gui.set_enabled(self.btn_share, false)
+	gui.set_enabled(self.btn_preview, false)
+	gui.set_enabled(self.btn_download, false)
 
 	if recorder.platform.is_ios then
 		--gui ios
@@ -181,12 +196,12 @@ function M.on_input(self, action_id, action)
 		end)
 	elseif self.current_state == STATE_OPTION_BTN then
 		dirtylarry.button("options", action_id, action, function() 
-			show_options(self, STATE_OPTIONS_MENU) 
+			show_options(self) 
 		end)
 	elseif self.current_state == STATE_RECORD_IN_PROGRESS then
 		dirtylarry.button("stop", action_id, action, function() 
 			M.func_stop_record(self)
-			M.record_end(self, STATE_POST_RECORD)
+			M.record_end(self)
 		end)
 	elseif self.current_state == STATE_START_RECORD_BTN then
 		dirtylarry.button("record", action_id, action, function() 
@@ -195,10 +210,19 @@ function M.on_input(self, action_id, action)
 		end)
 	elseif self.current_state == STATE_POST_RECORD then
 		dirtylarry.button("mux", action_id, action, function() 
+			gui.set_enabled(self.btn_mux, false)
+			gui.set_enabled(self.btn_download, false)
+			gui.set_enabled(self.btn_share, false)
 			M.func_mux(self)
 		end)
 		dirtylarry.button("share", action_id, action, function() 
 			M.func_share(self)
+		end)
+		dirtylarry.button("download", action_id, action, function() 
+			M.func_download(self)
+		end)
+		dirtylarry.button("options", action_id, action, function() 
+			show_options(self) 
 		end)
 	end
 end

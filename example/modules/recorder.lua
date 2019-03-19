@@ -14,8 +14,8 @@ M.IS_NEED_RENDER_TAGET = system_name ~= 'iPhone OS'
 local is_first_init = true
 local is_inited = false
 
-local video_ext = is_desktop and 'webm' or 'mp4'
-local audio_ext = is_desktop and 'webm' or 'aac'
+local video_ext = M.platform.is_desktop and 'webm' or 'mp4'
+local audio_ext = M.platform.is_desktop and 'webm' or 'aac'
 
 M.VIDEO_FILENAME = "video"
 M.RESULT_FILENAME = "gameplay"
@@ -228,6 +228,14 @@ function M.capture_frame(dt)
 			sec_from_last_frame = 0
 		end
 	end
+end
+
+function M.get_video_file_path()
+	return video_filename
+end
+
+function M.get_muxed_file_path()
+	return output_filename
 end
 
 return M
