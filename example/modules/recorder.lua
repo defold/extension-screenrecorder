@@ -20,6 +20,8 @@ local audio_ext = M.platform.is_desktop and 'webm' or 'aac'
 M.VIDEO_FILENAME = "video"
 M.RESULT_FILENAME = "gameplay"
 
+M.logging = ""
+
 -- Temporary video track file.
 local video_filename = nil
 -- Video file with muxed-in audio track.
@@ -38,6 +40,8 @@ M.params = {}
 local function log(...)
 	if is_debug then
 		print("SCREEN_RECORDER: ",...)
+		local lg = {...}
+		M.logging = M.logging..table.concat(lg, ', ').."\n"
 	end
 end
 
@@ -102,6 +106,7 @@ function M.register_listener(self, listener)
 end
 
 function M.fill_defaulf_params(params)
+	
 	params = params or M.params
 
 	if is_first_init then

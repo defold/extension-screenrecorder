@@ -9,6 +9,7 @@ local STATE_OPTIONS_MENU = 1
 local STATE_START_RECORD_BTN = 2
 local STATE_RECORD_IN_PROGRESS = 3
 local STATE_POST_RECORD = 4
+local STATE_ERROR = -1
 
 -- in example_ui.lua hide all UI specific things.
 -- All necessary for screenrecorder NE code in example.gui_script and recorder.lua
@@ -19,6 +20,7 @@ M.func_stop_record = nil
 M.func_mux = nil
 M.func_share = nil
 M.func_download = nil
+M.func_error = nil
 
 function M.show_post_record_options(self, no_mux)
 	if not no_mux then 
@@ -48,6 +50,11 @@ function M.recorder_inited(self)
 	self.current_state = STATE_START_RECORD_BTN
 end
 
+function M.on_error(self)
+	self.current_state = STATE_ERROR
+	gui.set_enabled(self.btn_error, true)
+end
+
 local function start_record(self, state)
 	gui.set_enabled(self.btn_stop, true)
 	gui.set_enabled(self.btn_record, false)
@@ -75,12 +82,14 @@ function M.init(self)
 	self.btn_preview = gui.get_node("preview/bg")
 	self.btn_init = gui.get_node("init/bg")
 	self.btn_download = gui.get_node("download/bg")
+	self.btn_error = gui.get_node("error/bg")
 
 	gui.set_enabled(self.btn_stop, false)
 	gui.set_enabled(self.btn_mux, false)
 	gui.set_enabled(self.btn_share, false)
 	gui.set_enabled(self.btn_preview, false)
 	gui.set_enabled(self.btn_download, false)
+	gui.set_enabled(self.btn_error, false)
 
 	self.opt_screen = gui.get_node("options_scr")
 	self.scr_ios = gui.get_node("ios")
@@ -222,7 +231,11 @@ function M.on_input(self, action_id, action)
 			M.func_download(self)
 		end)
 		dirtylarry.button("options", action_id, action, function() 
-			show_options(self) 
+			show_options(self)
+		end)
+	elseif self.current_state == STATE_ERROR then
+		dirtylarry.button("error", action_id, action, function() 
+			M.func_error(self)
 		end)
 	end
 end

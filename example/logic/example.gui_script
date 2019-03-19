@@ -31,10 +31,23 @@ local function download_video(self)
 	directories.download_file(file_for_download)
 end
 
+local function on_error(self)
+	local file = directories.path_for_file("log.txt", directories.documents)
+	local audio_file = io.open(file, 'wb')
+	audio_file:write(recorder.logging)
+	audio_file:close()
+	if recorder.platform.is_html5 then
+		directories.download_file(file)
+	else
+		if share.is_avaliable() then
+			share.send(file)
+		end
+	end
+end
+
 local function recorder_listener(self, event)
 	if event.is_error then
-		--TODO: turn on error ui
-		print("err")
+		example_ui.on_error(self)
 		return
 	end
 	if event.phase == 'init' then
@@ -71,6 +84,7 @@ function init(self)
 	example_ui.func_mux = mux_video
 	example_ui.func_share = share_video
 	example_ui.func_download = download_video
+	example_ui.func_error = on_error
 end
 
 function on_input(self, action_id, action)
