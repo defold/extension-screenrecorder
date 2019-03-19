@@ -137,7 +137,7 @@ embedded_instances {
   "  type: \"model\"\n"
   "  data: \"mesh: \\\"/example/res/plane_100.dae\\\"\\n"
   "material: \\\"/example/materials/render_target.material\\\"\\n"
-  "textures: \\\"\\\"\\n"
+  "textures: \\\"/builtins/graphics/particle_blob.png\\\"\\n"
   "skeleton: \\\"\\\"\\n"
   "animations: \\\"\\\"\\n"
   "default_animation: \\\"\\\"\\n"
