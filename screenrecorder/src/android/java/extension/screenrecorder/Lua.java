@@ -2,6 +2,10 @@ package extension.screenrecorder;
 
 @SuppressWarnings("JniMissingFunction")
 class Lua {
+	private static native void lua_dmscript_getinstance(long L);
+
+	private static native void lua_dmscript_setinstance(long L);
+
 	private static native int lua_registryindex(long L);
 
 	private static native void lua_error(long L, String s);
@@ -45,6 +49,14 @@ class Lua {
 	private static native int lua_ref(long L, int index);
 
 	private static native void lua_unref(long L, int index, int ref);
+
+	static void dmscript_getinstance(long L) {
+		lua_dmscript_getinstance(L);
+	}
+
+	static void dmscript_setinstance(long L) {
+		lua_dmscript_setinstance(L);
+	}
 
 	static int registryindex(long L) {
 		return lua_registryindex(L);

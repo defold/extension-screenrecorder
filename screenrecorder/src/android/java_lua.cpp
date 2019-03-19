@@ -5,6 +5,14 @@
 #include "java_lua.h"
 
 extern "C" {
+	JNIEXPORT void JNICALL Java_extension_screenrecorder_Lua_lua_dmscript_1getinstance(JNIEnv *env, jobject obj, jlong L) {
+		dmScript::GetInstance((lua_State*)L);
+	}
+
+	JNIEXPORT void JNICALL Java_extension_screenrecorder_Lua_lua_dmscript_1setinstance(JNIEnv *env, jobject obj, jlong L) {
+		dmScript::SetInstance((lua_State*)L);
+	}
+
 	JNIEXPORT jint JNICALL Java_extension_screenrecorder_Lua_lua_1registryindex(JNIEnv *env, jobject obj, jlong L) {
 		return LUA_REGISTRYINDEX;
 	}

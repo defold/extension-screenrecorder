@@ -70,21 +70,24 @@ abstract class Utils {
 		return event;
 	}
 
-	static void dispatchEvent(final int listener, final Hashtable<Object, Object> event) {
-		dispatchEvent(listener, event, false);
+	static void dispatchEvent(final int listener, final Integer script_instance, final Hashtable<Object, Object> event) {
+		dispatchEvent(listener, script_instance, event, false);
 	}
 
-	static void dispatchEvent(final Integer listener, final Hashtable<Object, Object> event, final boolean shouldDeleteRef) {
-		if ((listener == null) || (listener == Lua.REFNIL) || (listener == Lua.NOREF)) {
+	static void dispatchEvent(final Integer listener, final Integer script_instance, final Hashtable<Object, Object> event, final boolean shouldDeleteRef) {
+		if ((listener == null) || (listener == Lua.REFNIL) || (listener == Lua.NOREF) || (script_instance == null) || (script_instance == Lua.REFNIL) || (script_instance == Lua.NOREF)) {
 			return;
 		}
 		JavaFunction task = new JavaFunction() {
 			public int invoke(long L) {
 				Lua.rawget(L, Lua.REF_OWNER, listener);
+				Lua.rawget(L, Lua.REF_OWNER, script_instance);
+				Lua.dmscript_setinstance(L);
 				pushHashtable(L, event);
 				Lua.call(L, 1, 0);
 				if (shouldDeleteRef) {
 					deleteRef(L, listener);
+					deleteRef(L, script_instance);
 				}
 				return 0;
 			}

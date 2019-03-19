@@ -26,6 +26,7 @@ public class ScreenRecorder implements MuxerTask.Callback {
 	private boolean is_recording_boolean = false;
 	private boolean use_media_recorder = false;
 	private int lua_listener = Lua.REFNIL;
+	private int lua_script_instance = Lua.REFNIL;
 	private boolean is_write_external_storage_permission_granted = false;
 	private int width, height;
 	private Utils.LuaLightuserdata render_target;
@@ -132,12 +133,18 @@ public class ScreenRecorder implements MuxerTask.Callback {
 		final Integer duration = params.getInteger("duration");
 		lua_listener = params.getFunction("listener", Lua.REFNIL);
 
+		if (lua_script_instance != Lua.REFNIL) {
+			Lua.unref(L, Lua.REF_OWNER, lua_script_instance);
+		}
+		Lua.dmscript_getinstance(L);
+		lua_script_instance = Lua.ref(L, Lua.REF_OWNER);
+
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
 			Hashtable<Object,Object> event = Utils.newEvent(SCREENRECORDER);
 			event.put(EVENT_PHASE, EVENT_INIT);
 			event.put(EVENT_IS_ERROR, true);
 			event.put(EVENT_ERROR_MESSAGE, "Screenrecorder requires Android API 21 or higher.");
-			Utils.dispatchEvent(lua_listener, event, true);
+			Utils.dispatchEvent(lua_listener, lua_script_instance, event, true);
 			return 0;
 		}
 
@@ -171,14 +178,14 @@ public class ScreenRecorder implements MuxerTask.Callback {
 			if (is_error) {
 				event.put(EVENT_ERROR_MESSAGE, error_message);
 			}
-			Utils.dispatchEvent(lua_listener, event, is_error);
+			Utils.dispatchEvent(lua_listener, lua_script_instance, event, is_error);
 		} else {
 			if (duration < iframe * 2) {
 				Hashtable<Object,Object> event = Utils.newEvent(SCREENRECORDER);
 				event.put(EVENT_PHASE, EVENT_INIT);
 				event.put(EVENT_IS_ERROR, true);
 				event.put(EVENT_ERROR_MESSAGE, "CircularEncoder: requested time span is too short: " + duration + " vs. " + (iframe * 2) + ".");
-				Utils.dispatchEvent(lua_listener, event, true);
+				Utils.dispatchEvent(lua_listener, lua_script_instance, event, true);
 			} else {
 				final ScreenRecorder lua_loader = this;
 				activity.runOnUiThread(new Runnable() {
@@ -219,7 +226,7 @@ public class ScreenRecorder implements MuxerTask.Callback {
 		if (is_error) {
 			event.put(EVENT_ERROR_MESSAGE, error_message);
 		}
-		Utils.dispatchEvent(lua_listener, event, is_error);
+		Utils.dispatchEvent(lua_listener, lua_script_instance, event, is_error);
 	}
 
 	// screenrecorder.start()
@@ -252,7 +259,7 @@ public class ScreenRecorder implements MuxerTask.Callback {
 			Hashtable<Object,Object> event = Utils.newEvent(SCREENRECORDER);
 			event.put(EVENT_PHASE, EVENT_RECORDED);
 			event.put(EVENT_IS_ERROR, false);
-			Utils.dispatchEvent(lua_listener, event);
+			Utils.dispatchEvent(lua_listener, lua_script_instance, event);
 		} else {
 			circular_encoder.save_video();
 		}
@@ -298,7 +305,7 @@ public class ScreenRecorder implements MuxerTask.Callback {
 		if (is_error) {
 			event.put(EVENT_ERROR_MESSAGE, "Failed to save the recording.");
 		}
-		Utils.dispatchEvent(lua_listener, event);
+		Utils.dispatchEvent(lua_listener, lua_script_instance, event);
 	}
 
 	public void on_audio_video_muxed(String error_message) {
@@ -308,7 +315,7 @@ public class ScreenRecorder implements MuxerTask.Callback {
 		if (error_message != null) {
 			event.put(EVENT_ERROR_MESSAGE, error_message);
 		}
-		Utils.dispatchEvent(lua_listener, event);
+		Utils.dispatchEvent(lua_listener, lua_script_instance, event);
 	}
 
 	//region CircularEncoder.Callback
