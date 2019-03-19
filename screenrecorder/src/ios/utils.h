@@ -5,6 +5,7 @@
 
 @interface LuaTask : NSObject
 @property(nonatomic) int callback;
+@property(nonatomic) int lua_script_instance;
 @property(nonatomic,retain) NSDictionary *event;
 @property(nonatomic) bool deleteRef;
 @end
@@ -24,8 +25,8 @@
 +(NSMutableDictionary*)newEvent:(NSString*)name;
 +(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event;
 +(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
-+(void)dispatchEvent:(int)listener event:(NSMutableDictionary*)event;
-+(void)dispatchEvent:(int)listener event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
++(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event;
++(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
 +(void)setCFunctionAsField:(lua_State*)L name:(const char*)name function:(lua_CFunction)function;
 +(void)setCClosureAsField:(lua_State*)L name:(const char*)name function:(lua_CFunction)function upvalue:(void*)upvalue;
 +(void)pushValue:(lua_State*)L value:(NSObject*)object;

@@ -1,4 +1,4 @@
-local camera = require('libs.camera')
+local camera = require('old_example.libs.camera')
 
 -- In this script just tell the tank and the ground where is the light source.
 

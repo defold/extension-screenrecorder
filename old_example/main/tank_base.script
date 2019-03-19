@@ -1,6 +1,6 @@
 -- This script controls the tank.
-local camera = require('libs.camera')
-local recording = require('libs.recording')
+local camera = require('old_example.libs.camera')
+local recording = require('old_example.libs.recording')
 
 -- Used for collision check.
 go.property('is_meteor', false)

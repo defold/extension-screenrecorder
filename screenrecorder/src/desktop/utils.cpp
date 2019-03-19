@@ -270,11 +270,13 @@ namespace utils {
 		lua_setfield(L, -2, key);
 	}
 
-	void dispatch_event(lua_State *L, int listener, Event *event) {
-		if (listener == LUA_REFNIL || listener == LUA_NOREF) {
+	void dispatch_event(lua_State *L, int lua_listener, int lua_script_instance, Event *event) {
+		if (lua_listener == LUA_REFNIL || lua_listener == LUA_NOREF) {
 			return;
 		}
-		lua_rawgeti(L, LUA_REGISTRYINDEX, listener);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, lua_listener);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, lua_script_instance);
+		dmScript::SetInstance(L);
 		lua_newtable(L);
 		table_set_string_field(L, EVENT_NAME, event->name);
 		table_set_string_field(L, EVENT_PHASE, event->phase);
@@ -283,22 +285,26 @@ namespace utils {
 		lua_call(L, 1, 0);
 	}
 
-	void add_task(int listener, Event *event) {
+	void add_task(int lua_listener, int lua_script_instance, Event *event) {
+		ScriptListener script_listener = {
+			.lua_listener = lua_listener,
+			.lua_script_instance = lua_script_instance
+		};
 		Event event_copy = {
 			.name = copy_string(event->name),
 			.phase = copy_string(event->phase),
 			.is_error = event->is_error,
 			.error_message = copy_string(event->error_message)
 		};
-		tasks.push(std::make_pair(listener, event_copy));
+		tasks.push(std::make_pair(script_listener, event_copy));
 	}
 
 	void execute_tasks(lua_State *L) {
 		while (!tasks.empty()) {
 			Task task = tasks.front();
-			int listener = task.first;
+			ScriptListener script_listener = task.first;
 			Event *event = &task.second;
-			dispatch_event(L, listener, event);
+			dispatch_event(L, script_listener.lua_listener, script_listener.lua_script_instance, event);
 			delete []event->name;
 			delete []event->phase;
 			delete []event->error_message;

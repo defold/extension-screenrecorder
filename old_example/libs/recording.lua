@@ -3,7 +3,7 @@
 
 local _M = {}
 
-local camera = require('libs.camera')
+local camera = require('example.modules.camera')
 
 local audio_filename
 local is_screenrecorder_init = false

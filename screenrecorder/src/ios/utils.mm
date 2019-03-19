@@ -55,26 +55,27 @@ static NSMutableArray* tasks = [[NSMutableArray alloc] init];
 	return event;
 }
 
-+(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event {
-	[self dispatchEventNumber:listener event:event deleteRef:false];
++(void)dispatchEventNumber:(NSNumber*)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event {
+	[self dispatchEventNumber:listener lua_script_instance:lua_script_instance event:event deleteRef:false];
 }
 
-+(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef {
++(void)dispatchEventNumber:(NSNumber*)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef {
 	if (listener != nil) {
-		[self dispatchEvent:[listener intValue] event:event deleteRef:deleteRef];
+		[self dispatchEvent:[listener intValue] lua_script_instance:lua_script_instance event:event deleteRef:deleteRef];
 	}
 }
 
-+(void)dispatchEvent:(int)listener event:(NSMutableDictionary*)event {
-	[self dispatchEvent:listener event:event deleteRef:false];
++(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event {
+	[self dispatchEvent:listener lua_script_instance:lua_script_instance event:event deleteRef:false];
 }
 
-+(void)dispatchEvent:(int)listener event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef {
++(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef {
 	if ((listener == LUA_REFNIL) || (listener == LUA_NOREF)) {
 		return;
 	}
 	LuaTask* task = [[LuaTask alloc] init];
 	task.callback = listener;
+	task.lua_script_instance = lua_script_instance;
 	task.event = [NSDictionary dictionaryWithDictionary:event];
 	task.deleteRef = deleteRef;
 	[tasks addObject:task];
@@ -155,10 +156,13 @@ static NSMutableArray* tasks = [[NSMutableArray alloc] init];
 	while (tasks.count > 0) {
 		LuaTask* task = tasks.firstObject;
 		lua_rawgeti(L, LUA_REGISTRYINDEX, task.callback);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, task.lua_script_instance);
+		dmScript::SetInstance(L);
 		[self pushHashtable:L hashtable:task.event];
 		lua_call(L, 1, 0);
 		if (task.deleteRef) {
 			luaL_unref(L, LUA_REGISTRYINDEX, task.callback);
+			dmScript::Unref(L, LUA_REGISTRYINDEX, task->lua_script_instance);
 		}
 		[tasks removeObjectAtIndex:0];
 	}

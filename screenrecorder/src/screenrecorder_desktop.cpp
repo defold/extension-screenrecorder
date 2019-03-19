@@ -9,6 +9,7 @@
 static ScreenRecorder *sr = NULL;
 static bool is_initialized = false;
 static bool is_recording = false;
+int lua_script_instance = LUA_REFNIL;
 static int *lua_listener = NULL;
 static thread_ptr_t mux_audio_video_thread = NULL;
 static thread_ptr_t stop_thread = NULL;
@@ -89,7 +90,13 @@ int ScreenRecorder_init(lua_State *L) {
 		*sr->capture_params.async_encoding = false;
 	#endif
 
-	utils::Event event = {
+	if (lua_script_instance != LUA_REFNIL) {
+		dmScript::Unref(L, LUA_REGISTRYINDEX, lua_script_instance);
+	}
+	dmScript::GetInstance(L);
+	lua_script_instance = dmScript::Ref(L, LUA_REGISTRYINDEX);
+
+	utils::Event event = {	
 		.name = SCREENRECORDER,
 		.phase = EVENT_INIT,
 		.is_error = false
@@ -119,7 +126,7 @@ int ScreenRecorder_init(lua_State *L) {
 	} else {
 		is_initialized = true;
 	}
-	utils::dispatch_event(L, *lua_listener, &event);
+	utils::dispatch_event(L, *lua_listener, lua_script_instance, &event);
 	return 0;
 }
 
@@ -142,7 +149,7 @@ int ScreenRecorder_start(lua_State *L) {
 				.is_error = true,
 				.error_message = error_message
 			};
-			utils::dispatch_event(L, *lua_listener, &event);
+			utils::dispatch_event(L, *lua_listener, lua_script_instance, &event);
 		}
 	}
 	return 0;
@@ -161,7 +168,7 @@ static int stop_thread_proc(void *unused) {
 		ERROR_MESSAGE("Failed to stop video recording: %s", stop_error_message);
 		event.error_message = error_message;
 	}
-	utils::add_task(*lua_listener, &event);
+	utils::add_task(*lua_listener, lua_script_instance, &event);
 	return 0;
 }
 
@@ -196,7 +203,7 @@ static int mux_audio_video_thread_proc(void *unused) {
 	if (is_error) {
 		event.error_message = error_message;
 	}
-	utils::add_task(*lua_listener, &event);
+	utils::add_task(*lua_listener, lua_script_instance, &event);
 	return 0;
 }
 
@@ -237,7 +244,7 @@ int ScreenRecorder_capture_frame(lua_State *L) {
 				.is_error = true,
 				.error_message = error_message
 			};
-			utils::dispatch_event(L, *lua_listener, &event);
+			utils::dispatch_event(L, *lua_listener, lua_script_instance, &event);
 		}
 	}
 	return 0;

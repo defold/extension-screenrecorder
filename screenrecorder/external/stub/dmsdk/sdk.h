@@ -34,6 +34,13 @@ namespace dmExtension {
 	};
 };
 
+namespace dmScript {
+	void GetInstance(lua_State *L);
+	void SetInstance(lua_State *L);
+	int Ref(lua_State *L, int table);
+	int Unref(lua_State *L, int table, int reference);
+};
+
 namespace dmGraphics {
 	typedef enum ATTACHEMENTS {
 		ATTACHMENT_COLOR

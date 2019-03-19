@@ -35,6 +35,7 @@
     bool is_initialized;
     bool is_recording_bool;
     int lua_listener;
+    int lua_script_instance;
     NSMutableArray *asset_writers;
     NSMutableArray *asset_writer_videos;
     RPPreviewViewController *preview_view_controller;
@@ -96,6 +97,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
     is_initialized = false;
     is_recording_bool = false;
     lua_listener = LUA_REFNIL;
+    lua_script_instance = LUA_REFNIL;
     capture_params = [CaptureParams alloc];
     asset_writers = nil;
     asset_writer_videos = nil;
@@ -165,6 +167,12 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
     lua_listener = [params getFunction:@"listener" default:LUA_REFNIL];
     capture_params.enable_preview = [params getBoolean:@"enable_preview" default:false];
 
+    if (lua_script_instance != LUA_REFNIL) {
+		dmScript::Unref(L, LUA_REGISTRYINDEX, lua_script_instance);
+	}
+	dmScript::GetInstance(L);
+	lua_script_instance = dmScript::Ref(L, LUA_REGISTRYINDEX);
+
     NSError *error = nil;
     if (!capture_params.enable_preview) {
         // More parameters if the simple "preview" recorder is not used.
@@ -232,7 +240,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
         event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
     }
     event[EVENT_IS_ERROR] = @(is_error);
-    [Utils dispatchEvent:lua_listener event:event];
+    [Utils dispatchEvent:lua_listener lua_script_instance:lua_script_instance event:event];
 	return 0;
 }
 
@@ -251,7 +259,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                 event[EVENT_PHASE] = EVENT_RECORDED;
                 event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
                 event[EVENT_IS_ERROR] = @((bool)true);
-                [Utils dispatchEvent:self->lua_listener event:event];
+                [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
             }
         }];
     } else {
@@ -271,7 +279,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                     event[EVENT_PHASE] = EVENT_RECORDED;
                     event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
                     event[EVENT_IS_ERROR] = @((bool)true);
-                    [Utils dispatchEvent:self->lua_listener event:event];
+                    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
                 }
             }
             completionHandler:^(NSError * _Nullable error) {
@@ -283,7 +291,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                     event[EVENT_PHASE] = EVENT_RECORDED;
                     event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
                     event[EVENT_IS_ERROR] = @((bool)true);
-                    [Utils dispatchEvent:self->lua_listener event:event];
+                    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
                 }
             }
         ];
@@ -310,7 +318,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                 event[EVENT_ERROR_MESSAGE] = @"No preview view controller available.";
             }
             event[EVENT_IS_ERROR] = @(is_error);
-            [Utils dispatchEvent:self->lua_listener event:event];
+            [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
         }];
     } else {
         [RPScreenRecorder.sharedRecorder stopCaptureWithHandler:^(NSError * _Nullable error) {
@@ -332,7 +340,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                         event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
                     }
                     event[EVENT_IS_ERROR] = @(is_error);
-                    [Utils dispatchEvent:self->lua_listener event:event];
+                    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
                 }];
             }
         }];
@@ -404,7 +412,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                  if (is_error) {
                      event[EVENT_ERROR_MESSAGE] = asset_export.error.localizedDescription;
                  }
-                 [Utils dispatchEvent:self->lua_listener event:event];
+                 [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
              }];
         }
     }
@@ -413,7 +421,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
         event[EVENT_PHASE] = EVENT_MUXED;
         event[EVENT_IS_ERROR] = @((bool)true);
         event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
-        [Utils dispatchEvent:lua_listener event:event];
+        [Utils dispatchEvent:lua_listener lua_script_instance:lua_script_instance event:event];
     }
     return 0;
 }
@@ -451,7 +459,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
             event[EVENT_PHASE] = EVENT_RECORDED;
             event[EVENT_ERROR_MESSAGE] = asset_writer.error.localizedDescription;
             event[EVENT_IS_ERROR] = @((bool)true);
-            [Utils dispatchEvent:self->lua_listener event:event];
+            [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
         }
         if (buffer_type == RPSampleBufferTypeVideo && asset_writer_video.isReadyForMoreMediaData && is_recording_bool) {
             [asset_writer_video appendSampleBuffer:sample_buffer];
@@ -475,7 +483,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                     event[EVENT_PHASE] = EVENT_RECORDED;
                     event[EVENT_IS_ERROR] = @((bool)true);
                     event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
-                    [Utils dispatchEvent:self->lua_listener event:event];
+                    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
                 }
             }];
         }
@@ -495,7 +503,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
             event[EVENT_PHASE] = EVENT_RECORDED;
             event[EVENT_ERROR_MESSAGE] = asset_writer.error.localizedDescription;
             event[EVENT_IS_ERROR] = @((bool)true);
-            [Utils dispatchEvent:self->lua_listener event:event];
+            [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
         }
         if (buffer_type == RPSampleBufferTypeVideo && asset_writer_video.isReadyForMoreMediaData && is_recording_bool) {
             [asset_writer_video appendSampleBuffer:sample_buffer];
@@ -520,7 +528,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
             event[EVENT_IS_ERROR] = @((bool)true);
             event[EVENT_ERROR_MESSAGE] = error.localizedDescription;
         }
-        [Utils dispatchEvent:self->lua_listener event:event];
+        [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
     } else {
         AVMutableComposition *join_composition = [AVMutableComposition composition];
 
@@ -562,7 +570,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
                     if (is_error) {
                         event[EVENT_ERROR_MESSAGE] = asset_export.error.localizedDescription;
                     }
-                    [Utils dispatchEvent:self->lua_listener event:event];
+                    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
                 }];
             }
         }
@@ -586,7 +594,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
     NSMutableDictionary *event = [Utils newEvent:SCREENRECORDER];
     event[EVENT_PHASE] = EVENT_PREVIEW;
     event[EVENT_IS_ERROR] = @((bool)false);
-    [Utils dispatchEvent:self->lua_listener event:event];
+    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
 }
 
 -(void)previewController:(RPPreviewViewController *)preview_controller didFinishWithActivityTypes:(NSSet<NSString *> *)activity_types {
@@ -601,7 +609,7 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
     event[EVENT_PHASE] = EVENT_PREVIEW;
     event[@"actions"] = actions;
     event[EVENT_IS_ERROR] = @((bool)false);
-    [Utils dispatchEvent:self->lua_listener event:event];
+    [Utils dispatchEvent:self->lua_listener lua_script_instance:self->lua_script_instance event:event];
 }
 
 @end
