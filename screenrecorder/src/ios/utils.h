@@ -23,8 +23,8 @@
 +(void)deleteRefIfNotNil:(int)ref;
 +(void)put:(NSMutableDictionary*)hastable key:(NSString*)key value:(NSObject*)value;
 +(NSMutableDictionary*)newEvent:(NSString*)name;
-+(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event;
-+(void)dispatchEventNumber:(NSNumber*)listener event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
++(void)dispatchEventNumber:(NSNumber*)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event;
++(void)dispatchEventNumber:(NSNumber*)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
 +(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event;
 +(void)dispatchEvent:(int)listener lua_script_instance:(int)lua_script_instance event:(NSMutableDictionary*)event deleteRef:(bool)deleteRef;
 +(void)setCFunctionAsField:(lua_State*)L name:(const char*)name function:(lua_CFunction)function;

@@ -162,7 +162,7 @@ static NSMutableArray* tasks = [[NSMutableArray alloc] init];
 		lua_call(L, 1, 0);
 		if (task.deleteRef) {
 			luaL_unref(L, LUA_REGISTRYINDEX, task.callback);
-			dmScript::Unref(L, LUA_REGISTRYINDEX, task->lua_script_instance);
+			dmScript::Unref(L, LUA_REGISTRYINDEX, task.lua_script_instance);
 		}
 		[tasks removeObjectAtIndex:0];
 	}
