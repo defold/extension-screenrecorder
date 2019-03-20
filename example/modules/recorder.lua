@@ -141,7 +141,7 @@ function M.fill_defaulf_params(params)
 		M.params.x_scale = params.x_scale or 1
 		M.params.y_scale = params.y_scale or 1
 		M.params.fps = params.fps or 30
-		record_frame_every_ms = round(1/M.params.fps, 3)
+		record_frame_every_ms = round(1/M.params.fps - 0.001, 3)
 	end
 
 	if M.platform.is_desktop then
