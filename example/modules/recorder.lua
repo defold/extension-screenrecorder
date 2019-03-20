@@ -116,6 +116,7 @@ function M.fill_defaulf_params(params)
 	M.params.listener = listener
 	video_filename = params.filename or video_filename
 	M.params.filename = video_filename
+	os.remove(video_filename)
 
 	M.params.iframe = params.iframe or 1 
 	M.params.duration = params.duration or nil
@@ -217,7 +218,8 @@ end
 
 function M.mux_audio_video()
 	if not screenrecorder then log("screenrecorder module do not exist.") return end
-	
+
+	os.remove(output_filename)
 	screenrecorder.mux_audio_video({
 		audio_filename = audio_filename,
 		video_filename = video_filename,
