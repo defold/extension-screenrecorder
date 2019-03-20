@@ -61,7 +61,7 @@ Prepares the capture, sets up the encoder. Once setup is complete, an `'init'` e
 `params` - table with parameters.
 
 * iOS parameters:
-	* `enable_preview` - `boolean`, if `true`, enables showing a preview and edit window after a completed recording, default is `false`. Incompatible with set `duration` and other video params. iOS takes full control over the video.
+	* `enable_preview` - `boolean`, if `true`, enables showing a preview and edit window after a completed recording, default is `false`. Incompatible with `mux_audio_video()` method, `duration` and other video params. iOS takes full control over the video.
 	* `scaling` - `constant`, scaling mode determines how frame is placed into specified width/height region. Default is `screenrecorder.SCALING_RESIZE_ASPECT`. Possible values:
 		* `screenrecorder.SCALING_RESIZE` - crop to remove edge processing region; scale remainder to destination area.  Does not preserve aspect ratio.
 		* `screenrecorder.SCALING_RESIZE_ASPECT` - preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.

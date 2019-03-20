@@ -58,10 +58,12 @@ local function recorder_listener(self, event)
 		self.is_muxed = false
 		example_ui.recorder_inited(self)
 	elseif event.phase == 'recorded' then
-		example_ui.show_post_record_options(self)
+		local no_mux = false
 		if screenrecorder.is_preview_available() then
 			example_ui.show_preview(self, true)
+			no_mux = true -- mux unavalible if preview enabled
 		end
+		example_ui.show_post_record_options(self, no_mux)
 	elseif event.phase == 'muxed' then
 		self.is_muxed = true
 		example_ui.show_preview(self, false)
