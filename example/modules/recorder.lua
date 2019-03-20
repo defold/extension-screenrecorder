@@ -133,7 +133,7 @@ function M.fill_defaulf_params(params)
 	if M.platform.is_ios then
 		M.params.enable_preview = params.enable_preview or false
 		M.params.scaling = params.scaling and screenrecorder[params.scaling] or screenrecorder.SCALING_RESIZE_ASPECT
-		--[[screenrecorder.SCALING_FIT, 
+		--[[
 		screenrecorder.SCALING_RESIZE_ASPECT,
 		screenrecorder.SCALING_RESIZE, 
 		screenrecorder.SCALING_RESIZE_ASPECT_FILL]]--

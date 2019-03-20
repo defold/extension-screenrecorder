@@ -55,6 +55,7 @@ local function recorder_listener(self, event)
 		return
 	end
 	if event.phase == 'init' then
+		self.is_muxed = false
 		example_ui.recorder_inited(self)
 	elseif event.phase == 'recorded' then
 		example_ui.show_post_record_options(self)

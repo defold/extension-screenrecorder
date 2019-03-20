@@ -49,7 +49,6 @@
 }
 
 typedef NS_ENUM(NSUInteger, ScalingMode) {
-    ScalingModeFit,
     ScalingModeResize,
     ScalingModeResizeAspect,
     ScalingModeResizeAspectFill
@@ -80,8 +79,6 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
 	lua_getglobal(L, EXTENSION_NAME_STRING);
 
     // Additional API for iOS - video scaling modes.
-    lua_pushnumber(L, ScalingModeFit);
-    lua_setfield(L, -2, "SCALING_FIT");
 
     lua_pushnumber(L, ScalingModeResize);
     lua_setfield(L, -2, "SCALING_RESIZE");
@@ -177,9 +174,6 @@ int ScreenRecorder_show_preview(lua_State *L) {return [sr show_preview:L];}
     if (!capture_params.enable_preview) {
         // More parameters if the simple "preview" recorder is not used.
         switch (scaling) {
-            case ScalingModeFit:
-                capture_params.scaling_mode = AVVideoScalingModeFit;
-                break;
             case ScalingModeResize:
                 capture_params.scaling_mode = AVVideoScalingModeResize;
                 break;

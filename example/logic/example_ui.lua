@@ -100,7 +100,7 @@ function M.init(self)
 
 	hide_options(self, STATE_OPTION_BTN)
 
-	self.ios_list_scaling = {"SCALING_RESIZE_ASPECT", "SCALING_FIT", "SCALING_RESIZE", "SCALING_RESIZE_ASPECT_FILL"}
+	self.ios_list_scaling = {"SCALING_RESIZE_ASPECT", "SCALING_RESIZE", "SCALING_RESIZE_ASPECT_FILL"}
 end
 
 

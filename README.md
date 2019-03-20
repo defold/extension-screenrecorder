@@ -63,7 +63,6 @@ Prepares the capture, sets up the encoder. Once setup is complete, an `'init'` e
 * iOS parameters:
 	* `enable_preview` - `boolean`, if `true`, enables showing a preview and edit window after a completed recording, default is `false`. Incompatible with set `duration` and other video params. iOS takes full control over the video.
 	* `scaling` - `constant`, scaling mode determines how frame is placed into specified width/height region. Default is `screenrecorder.SCALING_RESIZE_ASPECT`. Possible values:
-		* `screenrecorder.SCALING_FIT` - crop to remove edge processing region; preserve aspect ratio of cropped source by reducing specified width or height if necessary.  Will not scale a small source up to larger dimensions.
 		* `screenrecorder.SCALING_RESIZE` - crop to remove edge processing region; scale remainder to destination area.  Does not preserve aspect ratio.
 		* `screenrecorder.SCALING_RESIZE_ASPECT` - preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.
 		* `screenrecorder.SCALING_RESIZE_ASPECT_FILL` - preserve aspect ratio of the source, and crop picture to fit destination dimensions.

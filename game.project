@@ -39,6 +39,7 @@ launch_image_2048x2732 = /preload/2048_2732.png
 launch_image_1125x2436 = /preload/1125_2436.png
 launch_image_320x480 = /preload/320_480.png
 launch_image_640x960 = /preload/640_960.png
+infoplist = /Info.plist
 
 [android]
 package = com.spiralcodestudio.test1
