@@ -30,7 +30,13 @@ include_dirs = screenrecorder
 
 [ios]
 bundle_identifier = com.spiralcodestudio.test1
-launch_image_640x1136 = /resources/Default-568h@2x.png
+launch_image_640x1136 = /preload/640_1136.png
+launch_image_750x1334 = /preload/750_1334.png
+launch_image_768x1024 = /preload/768_1024.png
+launch_image_1536x2048 = /preload/1536_2048.png
+launch_image_1242x2208 = /preload/1242_2208.png
+launch_image_2048x2732 = /preload/2048_2732.png
+launch_image_1125x2436 = /preload/1125_2436.png
 
 [android]
 package = com.spiralcodestudio.test1
