@@ -22,7 +22,7 @@ macOS, Linux and Windows require OpenGL 3.0 or better video card.
 	* Encoder: VP8 codec in the WEBM container.
 	* Muxer: accepts WEBM video and WEBM audio (Vorbis).
 
-On of the key features of this extension is the ability to save just last N seconds of the gameplay. The extension maintains a circular buffer for encoded data and saves it when requested. On Android, macOS, Linux and Windows the circular encoder stores it's data in memory, on iOS the circular encoder saves to temporary video files and then joins them together to produce desired duration. The circular encoder is activated with the `duration` parameter.
+One of the key features of this extension is the ability to save just last N seconds of the gameplay. The extension maintains a circular buffer for encoded data and saves it when requested. On Android, macOS, Linux and Windows the circular encoder stores it's data in memory, on iOS the circular encoder saves to temporary video files and then joins them together to produce desired duration. The circular encoder is activated with the `duration` parameter.
 
 Audio capture is not implemented, however the extension provides a function to mux a prepared audio file with the captured video.
 
