@@ -4,8 +4,9 @@ platforms:
     arm64-ios:
         context:
             frameworks: ["AVFoundation", "ReplayKit", "CoreMedia"]
-            linkFlags:  ["-ObjC"]
-            libs:       ["c++"]
+    armv7-ios:
+        context:
+            frameworks: ["AVFoundation", "ReplayKit", "CoreMedia"]
     x86_64-osx:
         context:
             flags:      ["-std=c++11"]
@@ -13,9 +14,15 @@ platforms:
     x86_64-linux:
         context:
             flags:      ["-std=c++11"]
+    x86-win32:
+        context:
+            flags:      ["-std=c++14"]
     x86_64-win32:
         context:
             flags:      ["-std=c++14"]
     js-web:
+        context:
+            flags:      ["-std=c++11"]
+    wasm-web:
         context:
             flags:      ["-std=c++11"]

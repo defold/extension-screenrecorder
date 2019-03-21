@@ -1,0 +1,9 @@
+images {
+  image: "/example/res/img/back.png"
+}
+images {
+  image: "/example/res/img/logo.png"
+}
+margin: 2
+extrude_borders: 0
+inner_padding: 0

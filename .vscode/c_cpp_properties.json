@@ -3,11 +3,13 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/../extension-screenrecorder-libsource/shared/**",
+                "${workspaceFolder}/screenrecorder/external/stub/**",
                 "${workspaceFolder}/screenrecorder/include/**",
-				"${workspaceFolder}/screenrecorder/src/**"
+				"${workspaceFolder}/screenrecorder/src/**",
+                "~/Library/Android/sdk/ndk-bundle/sysroot/usr/include",
+                "~/Library/Android/sdk/ndk-bundle/sysroot/usr/include/aarch64-linux-android"
             ],
-            "defines": ["DM_PLATFORM_OSX"],
+            "defines": ["DM_PLATFORM_ANDROID"],
             "macFrameworkPath": [
                 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk/System/Library/Frameworks"
             ],

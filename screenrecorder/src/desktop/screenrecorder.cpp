@@ -5,6 +5,7 @@
 #include "screenrecorder.h"
 #include "utils.h"
 
+// Extended OpenGL API functions.
 #if defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
 	#if defined(DM_PLATFORM_WINDOWS)
 		static PFNGLACTIVETEXTUREPROC glActiveTexture = NULL;
@@ -47,6 +48,7 @@
 	static PFNGLMAPBUFFERPROC glMapBuffer = NULL;
 #endif
 
+// Adapt to OpenGL ES for HTML5 platform.
 #ifdef DM_PLATFORM_HTML5
 	#define SHADER_HEADER "#version 100\n"\
 	"precision mediump float;\n"
@@ -54,6 +56,7 @@
 	#define SHADER_HEADER "#version 110\n"
 #endif
 
+// Captured gameplay frames are rendered onto a quad model to perform scaling and YUV color space conversion.
 static const char *vertex_shader_source = SHADER_HEADER
 	"attribute vec2 position;"
 	"attribute vec2 texcoord;"
@@ -63,7 +66,7 @@ static const char *vertex_shader_source = SHADER_HEADER
 		"gl_Position = vec4(position.x, position.y, 0.0, 1.0);"
 	"}";
 
-
+// Convert RGB source frame to YUV frame, required by the encoder.
 static const char *fragment_shader_source = SHADER_HEADER
 	"varying vec2 var_texcoord;"
 	"uniform sampler2D tex0;"
@@ -128,7 +131,7 @@ static const char *fragment_shader_source = SHADER_HEADER
 				"1.0"
 			");"
 		"} else {"
-			// Unused.
+			// Unused. YUV frame takes twice less space than RGB frame.
 			"gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);"
 		"}"
 	"}";
@@ -144,6 +147,7 @@ static float quad_model[] = {
 	 1.0f,  1.0f,	1.0f, 1.0f, // right top
 };
 
+// Use Pixel Buffer Objects for better performance. Not available on HTML5.
 static const int PBO_COUNT = 3;
 
 static void clear_gl_errors() {
@@ -168,6 +172,7 @@ static int encoding_thread_proc(void *user_data) {
 }
 
 ScreenRecorder::ScreenRecorder() :
+	// Use pixels buffer instead of PBO on HTML5.
 	#ifdef DM_PLATFORM_HTML5
 		pixels(NULL),
 	#endif
@@ -189,6 +194,7 @@ ScreenRecorder::ScreenRecorder() :
 	should_encoding_thread_exit(false),
 	is_enconding_thread_available(true),
 	capture_params() {
+		// Load OpenGL functions.
 		#if defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS)
 			#if defined(DM_PLATFORM_WINDOWS)
 				GET_PROC_ADDRESS(glActiveTexture, "glActiveTexture", PFNGLACTIVETEXTUREPROC)
@@ -466,6 +472,8 @@ bool ScreenRecorder::start(char *error_message) {
 	return true;
 }
 
+// Draw the quad model with retrived texture from Defold's render target, capture the output as YUV video frame and
+// pass it into the video encoder.
 bool ScreenRecorder::capture_frame(char *error_message) {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	GLenum error = glGetError(); if (error) {ERROR_MESSAGE("glBindFramebuffer fbo: %#04X", error); return false;}

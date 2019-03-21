@@ -25,6 +25,7 @@
 	if (function == 0x0) function = (type)wglGetProcAddress(name "EXT");\
 	if (function == 0x0) dmLogError("Could not find gl function %s.", name);
 #elif defined(DM_PLATFORM_HTML5)
+	#undef GL_ES_VERSION_2_0
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
 	#include <emscripten.h>
@@ -34,7 +35,8 @@
 #include <vpx/vp8cx.h>
 #include <thread.h>
 
-#include "sdk.h"
+#include <dmsdk/sdk.h>
+#include <dmsdk/dlib/log.h>
 #include "circular_buffer.h"
 #include "webmwriter.h"
 

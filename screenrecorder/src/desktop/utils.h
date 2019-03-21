@@ -7,8 +7,9 @@
 	#include <sys/time.h>
 #endif
 
-#include "sdk.h"
-#include "../extension.h"
+#include <dmsdk/sdk.h>
+#include <dmsdk/dlib/log.h>
+#include "../screenrecorder_private.h"
 
 #define ERROR_MESSAGE(format, ...) snprintf(error_message, 2048, format, ##__VA_ARGS__)
 
@@ -20,7 +21,11 @@ namespace utils {
 		bool is_error;
 		const char *error_message;
 	};
-	typedef std::pair<int, Event> Task;
+	struct ScriptListener {
+		int lua_listener;
+		int lua_script_instance;
+	};
+	typedef std::pair<ScriptListener, Event> Task;
 	uint64_t get_time();
 	void enable_debug();
 	void check_arg_count(lua_State *L, int count_exact);
@@ -51,9 +56,9 @@ namespace utils {
 	void table_get_lightuserdata(lua_State *L, const char *key, void **value, void *default_value);
 	void table_get_lightuserdata_not_null(lua_State *L, const char *key, void **value);
 
-	void dispatch_event(lua_State *L, int lua_listener, Event *event);
+	void dispatch_event(lua_State *L, int lua_listener, int lua_script_instance, Event *event);
 
-	void add_task(int listener, Event *event);
+	void add_task(int lua_listener, int lua_script_instance, Event *event);
 	void execute_tasks(lua_State *L);
 }
 

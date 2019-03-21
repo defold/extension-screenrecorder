@@ -2,15 +2,16 @@
 title = Screenrecorder
 version = 0.1
 custom_resources = resources/
-dependencies = https://github.com/Lerg/extension-directories/archive/master.zip,https://github.com/britzl/defold-sharing/archive/master.zip
+dependencies = https://github.com/Lerg/extension-directories/archive/master.zip,https://github.com/britzl/defold-sharing/archive/master.zip,https://github.com/britzl/gooey/archive/master.zip
 
 [bootstrap]
-main_collection = /main/main.collectionc
-render = /render/main.renderc
+main_collection = /example/example.collectionc
+render = /example/render/example.renderc
 
 [input]
-game_binding = /input/game.input_bindingc
-gamepads = /input/default.gamepadsc
+game_binding = /example/input/game.input_bindingc
+gamepads = /builtins/input/default.gamepadsc
+use_accelerometer = 0
 
 [display]
 width = 1280
@@ -29,7 +30,16 @@ include_dirs = screenrecorder
 
 [ios]
 bundle_identifier = com.spiralcodestudio.test1
-launch_image_640x1136 = /resources/Default-568h@2x.png
+launch_image_640x1136 = /preload/640_1136.png
+launch_image_750x1334 = /preload/750_1334.png
+launch_image_768x1024 = /preload/768_1024.png
+launch_image_1536x2048 = /preload/1536_2048.png
+launch_image_1242x2208 = /preload/1242_2208.png
+launch_image_2048x2732 = /preload/2048_2732.png
+launch_image_1125x2436 = /preload/1125_2436.png
+launch_image_320x480 = /preload/320_480.png
+launch_image_640x960 = /preload/640_960.png
+infoplist = /Info.plist
 
 [android]
 package = com.spiralcodestudio.test1

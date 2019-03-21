@@ -1,0 +1,188 @@
+--VIDEORECORDER: init render target function
+local camera = require('example.modules.camera')
+local recorder = require('example.modules.recorder')
+
+local function init_for_video_recorder(self)
+	camera.width, camera.height = render.get_window_width(), render.get_window_height()
+	if recorder.platform.is_desktop and not recorder.platform.is_html5 then
+		camera.width_rt, camera.height_rt = camera.width, camera.height
+	else
+		camera.width_rt, camera.height_rt = camera.get_render_target_size(math.max(camera.width, camera.height), 2048)
+	end
+	
+	local render_target_params = {}
+	render_target_params[render.BUFFER_COLOR_BIT] = {
+		format = render.FORMAT_RGBA,
+		width = camera.width_rt,
+		height = camera.height_rt
+	}
+	render_target_params[render.BUFFER_DEPTH_BIT] = {
+		format = render.FORMAT_DEPTH,
+		width = camera.width_rt,
+		height = camera.height_rt
+	}
+	--if you have masks uncomment this part:
+	--[[
+	render_target_params[render.BUFFER_STENCIL_BIT] = {
+		format = render.FORMAT_STENCIL,
+		width = camera.width_rt,
+		height = camera.height_rt
+	}
+	]]--
+	local render_target_size = 100
+	self.RT_proj = vmath.matrix4_orthographic(0, render_target_size, 0, render_target_size, - 1, 1)
+	camera.render_target = render.render_target('video_recording', render_target_params)
+end
+
+--VIDEORECORDER: end
+
+--
+-- projection that centers content with maintained aspect ratio and optional zoom
+--
+local function fixed_projection(near, far, zoom)
+	local projected_width = render.get_window_width() / (zoom or 1)
+	local projected_height = render.get_window_height() / (zoom or 1)
+	local xoffset = -(projected_width - render.get_width()) / 2
+	local yoffset = -(projected_height - render.get_height()) / 2
+	return vmath.matrix4_orthographic(xoffset, xoffset + projected_width, yoffset, yoffset + projected_height, near, far)
+end
+--
+-- projection that centers and fits content with maintained aspect ratio
+--
+local function fixed_fit_projection(near, far)
+	local width = render.get_width()
+	local height = render.get_height()
+	local window_width = render.get_window_width()
+	local window_height = render.get_window_height()
+	local zoom = math.min(window_width / width, window_height / height)
+	return fixed_projection(near, far, zoom)
+end
+--
+-- projection that stretches content
+--
+local function stretch_projection(near, far)
+	return vmath.matrix4_orthographic(0, render.get_width(), 0, render.get_height(), near, far)
+end
+
+local function get_projection(self)
+	return self.projection_fn(self.near, self.far, self.zoom)
+end
+
+function init(self)
+	self.tile_pred = render.predicate({"tile"})
+	self.gui_pred = render.predicate({"gui"})
+	self.text_pred = render.predicate({"text"})
+	self.particle_pred = render.predicate({"particle"})
+
+	self.clear_color = vmath.vector4(0, 0, 0, 0)
+	self.clear_color.x = sys.get_config("render.clear_color_red", 0)
+	self.clear_color.y = sys.get_config("render.clear_color_green", 0)
+	self.clear_color.z = sys.get_config("render.clear_color_blue", 0)
+	self.clear_color.w = sys.get_config("render.clear_color_alpha", 0)
+
+	self.view = vmath.matrix4()
+
+	-- default is stretch projection. copy from builtins and change for different projection
+	-- or send a message to the render script to change projection:
+	-- msg.post("@render:", "use_stretch_projection", { near = -1, far = 1 })
+	-- msg.post("@render:", "use_fixed_projection", { near = -1, far = 1, zoom = 2 })
+	-- msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
+	self.near = -1
+	self.far = 1
+	self.projection_fn = stretch_projection
+	
+	--save screen clear parameters
+	self.clear_params = {
+		[render.BUFFER_COLOR_BIT] = self.clear_color,
+		[render.BUFFER_DEPTH_BIT] = 1,
+		[render.BUFFER_STENCIL_BIT] = 0
+	}
+	
+	--VIDEORECORDER: init render target
+	if recorder.IS_NEED_RENDER_TAGET then
+		self.render_target_pred = render.predicate({"video_recording_rt"})
+		init_for_video_recorder(self)
+	end
+	self.dt = socket.gettime()
+	--VIDEORECORDER: -end
+end
+
+function update(self, dt)
+	render.set_depth_mask(true)
+	render.set_stencil_mask(0xff)
+	render.clear(self.clear_params)
+
+	render.set_viewport(0, 0, render.get_window_width(), render.get_window_height())
+	render.set_view(self.view)
+	render.set_depth_mask(false)
+	render.disable_state(render.STATE_DEPTH_TEST)
+	render.disable_state(render.STATE_STENCIL_TEST)
+	render.enable_state(render.STATE_BLEND)
+	render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+	render.disable_state(render.STATE_CULL_FACE)
+
+	render.set_projection(get_projection(self))
+	--VIDEORECORDER: draw into render target
+	if recorder.IS_NEED_RENDER_TAGET and recorder.is_recording() then
+		render.set_viewport(0, 0, camera.width_rt, camera.height_rt)
+		render.enable_render_target(camera.render_target)
+		render.clear(self.clear_params)
+
+		render.draw(self.tile_pred)
+		render.draw(self.particle_pred)
+		render.disable_render_target(camera.render_target)
+
+		recorder.capture_frame(dt)
+		 
+
+		--VIDEORECORDER: Show render target on the screen
+		render.set_viewport(0, 0, camera.width, camera.height)
+		render.set_view(self.view)
+		render.set_projection(self.RT_proj)
+		render.enable_texture(0, camera.render_target, render.BUFFER_COLOR_BIT)
+		render.draw(self.render_target_pred)
+		render.disable_texture(0, camera.render_target)
+		--VIDEORECORDER:--end
+	else
+		render.draw(self.tile_pred)
+		render.draw(self.particle_pred)
+	end
+	
+	render.draw_debug3d()
+
+	-- render GUI
+	--
+	render.set_view(vmath.matrix4())
+	render.set_projection(vmath.matrix4_orthographic(0, render.get_window_width(), 0, render.get_window_height(), -1, 1))
+
+	render.enable_state(render.STATE_STENCIL_TEST)
+	render.draw(self.gui_pred)
+	render.draw(self.text_pred)
+	render.disable_state(render.STATE_STENCIL_TEST)
+end
+
+function on_message(self, message_id, message)
+	if message_id == hash("clear_color") then
+		self.clear_color = message.color
+		--replace color for clear parameters
+		self.clear_params[render.BUFFER_COLOR_BIT] = self.clear_color
+	elseif message_id == hash("set_view_projection") then
+		self.view = message.view
+		self.projection = message.projection
+	elseif message_id == hash("use_camera_projection") then
+		self.projection_fn = function() return self.projection or vmath.matrix4() end
+	elseif message_id == hash("use_stretch_projection") then
+		self.near = message.near or -1
+		self.far = message.far or 1
+		self.projection_fn = stretch_projection
+	elseif message_id == hash("use_fixed_projection") then
+		self.near = message.near or -1
+		self.far = message.far or 1
+		self.zoom = message.zoom or 1
+		self.projection_fn = fixed_projection
+	elseif message_id == hash("use_fixed_fit_projection") then
+		self.near = message.near or -1
+		self.far = message.far or 1
+		self.projection_fn = fixed_fit_projection
+	end
+end

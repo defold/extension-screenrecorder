@@ -1,0 +1,11 @@
+local function start_moving()
+	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, 
+	vmath.vector3(math.random(0, 1280), math.random(0, 720), 0), go.EASING_LINEAR, 1, 0,
+	function()
+		start_moving()
+	end)
+end
+
+function init(self)
+	start_moving()
+end
