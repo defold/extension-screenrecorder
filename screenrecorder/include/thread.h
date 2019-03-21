@@ -772,12 +772,13 @@ void thread_set_high_priority( void )
 
         SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
     
-    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ ) || defined( __EMSCRIPTEN__ )
+    #elif defined( __linux__ ) || defined( __APPLE__ ) || defined( __ANDROID__ )
 
         struct sched_param sp;
         memset( &sp, 0, sizeof( sp ) );
         sp.sched_priority = sched_get_priority_min( SCHED_RR );
         pthread_setschedparam( pthread_self(), SCHED_RR, &sp);
+    #elif defined( __EMSCRIPTEN__ )
 
     #else 
         #error Unknown platform.
