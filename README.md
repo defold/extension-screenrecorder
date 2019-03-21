@@ -155,4 +155,5 @@ The `listener` function receives an `event` table with information about succesf
 	* [OpenGL](https://en.wikipedia.org/wiki/OpenGL)
 	* [emscripten](https://github.com/kripken/emscripten)
 
-	Original extension code developed by @Lerg , with modifications by the Defold team.
+## Credits
+Original extension code developed by @Lerg, with modifications by the Defold team.
