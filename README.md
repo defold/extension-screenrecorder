@@ -1,3 +1,5 @@
+> This is a community contributed native extension, provided as-is. Community contributions to improve the extension are welcome. The Defold team will only provide limited support if bugs are encountered.
+
 # Screenrecorder Extension
 
 This extension captures video gameplay.
@@ -152,4 +154,5 @@ The `listener` function receives an `event` table with information about succesf
 	* [WebM](https://en.wikipedia.org/wiki/WebM)
 	* [OpenGL](https://en.wikipedia.org/wiki/OpenGL)
 	* [emscripten](https://github.com/kripken/emscripten)
-	
+
+	Original extension code developed by @Lerg , with modifications by the Defold team.
