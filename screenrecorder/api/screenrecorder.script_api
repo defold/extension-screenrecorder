@@ -1,0 +1,95 @@
+- name: screenrecorder
+  type: table
+  desc: native screenrecorder on cross-platform.
+  members:
+
+  - name: init
+    type: function
+    desc: Prepares the capture, sets up the encoder.  
+    parameters:
+    - name: params
+      type: table
+      desc: table with parameters.
+    examples:
+    - desc: screenrecorder.init(params)
+            iOS parameters
+                enable_preview - boolean, if true, enables showing a preview and edit window after a completed recording, default is false. Incompatible with mux_audio_video() method, duration and other video params. iOS takes full control over the video.
+                scaling - constant, scaling mode determines how frame is placed into specified width/height region. Default is screenrecorder.SCALING_RESIZE_ASPECT. Possible values
+                    screenrecorder.SCALING_RESIZE - crop to remove edge processing region; scale remainder to destination area. Does not preserve aspect ratio.
+                    screenrecorder.SCALING_RESIZE_ASPECT - preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.
+                    screenrecorder.SCALING_RESIZE_ASPECT_FILL - preserve aspect ratio of the source, and crop picture to fit destination dimensions.
+            Desktop parameters
+                async_encoding - boolean, experimental - if true use a separate encoding thread. Might improve performance, might make it worse. Default is false.
+            Common parameters
+                render_target - render_target, specifies a render target to work with, the extension uses it's internal texture to pass data into encoder. What is rendered into this target gets into the video file. Required on all platforms, except iOS.
+                x_scale - number, horizontal scale of the render target's texture. Use it with y_scale to maintain desired aspect ratio and frame fill. Default is 1.0.
+                y_scale - number, vertical scale of the render target's texture. Default is 1.0.
+                filename - string, path to the output video file. Required.
+                width - number, width of the video frame. Default is 1280.
+                height - number, height of the video frame. Default is 720.
+                iframe - number, video keyframe interval in seconds. Default is 1.0.
+                duration - number, if set, use circular encoder to record last N seconds. Default is nil.
+                fps - number, video framerate, Default is 30. On iOS fps is chosen by the OS and this setting has no effect.
+                bitrate - number, video bitrate in bits per second. Default is 2 * 1024 * 1024.
+                listener - function, this function receives various events from the extension. See Events section.
+
+  - name: start
+    type: function
+    desc: Starts the capture process.
+    examples:
+    - desc: screenrecorder.start()
+
+  - name: stop
+    type: function
+    desc: Stops the capture process.
+    examples:
+    - desc: screenrecorder.stop()
+    
+  - name: capture_frame
+    type: function
+    desc: Captures the current frame and submits it to the encoder.
+    examples:
+    - desc: screenrecorder.capture_frame()
+
+  - name: is_recording
+    type: function
+    desc: Returns true if the extension is currently recording. false otherwise.
+    examples:
+    - desc: screenrecorder.is_recording()
+
+  - name: mux_audio_video
+    type: function
+    desc: Muxes one audio file and one video file into one combined file.
+    parameters:
+    - name: params
+      type: table
+      desc: table with parameters. 
+            audio_filename - string, path to the audio file. Required.
+            video_filename - string, path to the video file. Required.
+            filename - string, path to the output file. Required.
+    examples:
+    - desc: screenrecorder.mux_audio_video(params)
+    
+  - name: is_preview_available
+    type: function
+    desc: Returns true if the extension has captured video with enabled preview on iOS and this preview is ready to show up. false otherwise.
+    examples:
+    - desc: screenrecorder.is_preview_available()
+    
+  - name: show_preview
+    type: function
+    desc: Shows a special window on iOS that lets the user to edit and share the recorded video.
+    examples:
+    - desc: screenrecorder.show_preview()
+
+  - name: SCALING_RESIZE 
+    type: number
+    desc: crop to remove edge processing region; scale remainder to destination area. Does not preserve aspect ratio.
+
+  - name: SCALING_RESIZE_ASPECT
+    type: number
+    desc: preserve aspect ratio of the source, and fill remaining areas with black to fit destination dimensions.
+
+  - name: SCALING_RESIZE_ASPECT_FILL
+    type: number
+    desc: preserve aspect ratio of the source, and crop picture to fit destination dimensions.
