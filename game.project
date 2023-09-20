@@ -2,7 +2,10 @@
 title = Screenrecorder
 version = 0.1
 custom_resources = resources/
-dependencies = https://github.com/Lerg/extension-directories/archive/master.zip,https://github.com/britzl/defold-sharing/archive/master.zip,https://github.com/britzl/gooey/archive/master.zip
+dependencies#0 = https://github.com/Lerg/extension-directories/archive/master.zip
+dependencies#1 = https://github.com/britzl/defold-sharing/archive/refs/tags/4.3.0.zip
+dependencies#2 = https://github.com/britzl/gooey/archive/refs/tags/10.4.1.zip
+dependencies#3 = https://github.com/britzl/gooey-dirtylarry/archive/refs/tags/2.0.0.zip
 
 [bootstrap]
 main_collection = /example/example.collectionc

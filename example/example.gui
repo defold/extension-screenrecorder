@@ -1,7 +1,7 @@
 script: "/example/logic/example.gui_script"
 fonts {
   name: "dirtylarry"
-  font: "/gooey/themes/dirtylarry/fonts/dirtylarry.font"
+  font: "/gooey-dirtylarry/fonts/dirtylarry.font"
 }
 background_color {
   x: 0.0
@@ -45,7 +45,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -313,7 +313,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/checkbox.gui"
+  template: "/gooey-dirtylarry/components/checkbox.gui"
   template_node_child: false
 }
 nodes {
@@ -472,7 +472,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/dynamiclist.gui"
+  template: "/gooey-dirtylarry/components/dynamiclist.gui"
   template_node_child: false
 }
 nodes {
@@ -862,7 +862,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -1140,7 +1140,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -1418,7 +1418,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -1751,7 +1751,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -2029,7 +2029,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -2308,7 +2308,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -2587,7 +2587,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/input.gui"
+  template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
 }
 nodes {
@@ -2857,7 +2857,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/checkbox.gui"
+  template: "/gooey-dirtylarry/components/checkbox.gui"
   template_node_child: false
 }
 nodes {
@@ -3016,7 +3016,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3174,7 +3174,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3334,7 +3334,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3494,7 +3494,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3654,7 +3654,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3814,7 +3814,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -3974,7 +3974,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
@@ -4134,7 +4134,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/gooey/themes/dirtylarry/components/button.gui"
+  template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
 }
 nodes {
