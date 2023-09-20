@@ -36,8 +36,8 @@ static const char *EVENT_RECORDED = "recorded";
 
 // The extension receives video frames from Defold's render target internal texture.
 // This method retrives this texture's OpenGL id.
-static bool get_render_target_texture_id(void *render_target, int *texture_id) {
-	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment((dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
+static bool get_render_target_texture_id(dmGraphics::HRenderTarget render_target, int *texture_id) {
+	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment(render_target, dmGraphics::ATTACHMENT_COLOR);
 	if (color_texture == NULL) {
 		dmLogError("Could not get the color attachment from render target.");
 		return false;
@@ -68,7 +68,7 @@ int ScreenRecorder_init(lua_State *L) {
 		return 0;
 	}
 
-	void *render_target = NULL;
+	dmGraphics::HRenderTarget render_target = 0;
 
 	// Parse params table argument.
 	utils::get_table(L, 1); // params.
@@ -83,7 +83,11 @@ int ScreenRecorder_init(lua_State *L) {
 	utils::table_get_double(L, "y_scale", &sr->capture_params.y_scale, 1.0);
 	utils::table_get_boolean(L, "async_encoding", &sr->capture_params.async_encoding, false);
 	utils::table_get_function(L, "listener", &lua_listener, LUA_REFNIL);
-	utils::table_get_lightuserdata_not_null(L, "render_target", &render_target);
+
+	lua_getfield(L, -1, "render_target");
+	render_target = (dmGraphics::HRenderTarget)lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
 	lua_pop(L, 1); // params table.
 
 	#ifdef DM_PLATFORM_HTML5
