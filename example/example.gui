@@ -47,8 +47,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -104,10 +102,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -142,7 +136,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Options"
   font: "dirtylarry"
   id: "options/label"
   xanchor: XANCHOR_NONE
@@ -168,13 +162,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -229,10 +220,6 @@ nodes {
   alpha: 0.5
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -288,10 +275,6 @@ nodes {
   alpha: 1.0
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -332,8 +315,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/checkbox.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -355,8 +336,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 64.0
+    y: 68.0
     z: 0.0
     w: 1.0
   }
@@ -389,10 +370,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_AUTO
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -427,7 +404,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "enable preview"
   font: "dirtylarry"
   id: "check_preview/label"
   xanchor: XANCHOR_NONE
@@ -453,13 +430,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -500,8 +474,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/dynamiclist.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -523,8 +495,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 420.0
-    y: 340.0
+    x: 450.0
+    y: 300.0
     z: 0.0
     w: 1.0
   }
@@ -555,12 +527,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -582,7 +551,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 420.0
+    x: 450.0
     y: 320.0
     z: 0.0
     w: 1.0
@@ -614,12 +583,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -641,7 +607,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 440.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -673,12 +639,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -694,8 +657,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.8
+    y: 0.8
     z: 1.0
     w: 1.0
   }
@@ -739,13 +702,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -801,10 +761,6 @@ nodes {
   alpha: 1.0
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -868,10 +824,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -912,12 +864,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -935,7 +885,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -967,12 +917,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1036,10 +984,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1095,10 +1039,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1162,10 +1102,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1206,12 +1142,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1229,7 +1163,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -1261,12 +1195,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1330,10 +1262,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1389,10 +1317,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1456,10 +1380,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1500,12 +1420,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1523,7 +1441,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -1555,12 +1473,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1624,10 +1540,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1683,10 +1595,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1742,10 +1650,6 @@ nodes {
   alpha: 1.0
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1809,10 +1713,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1853,12 +1753,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1876,7 +1774,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -1908,12 +1806,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -1977,10 +1873,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2036,10 +1928,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2103,10 +1991,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2147,12 +2031,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2170,7 +2052,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -2202,12 +2084,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2271,10 +2151,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2330,10 +2206,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2398,10 +2270,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2442,12 +2310,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2465,7 +2331,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -2497,12 +2363,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2566,10 +2430,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2625,10 +2485,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2693,10 +2549,6 @@ nodes {
   template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2737,12 +2589,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/input.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 47.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2760,7 +2610,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 150.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -2792,12 +2642,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2861,10 +2709,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2920,10 +2764,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -2979,10 +2819,6 @@ nodes {
   alpha: 1.0
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3023,8 +2859,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/checkbox.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3046,8 +2880,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 64.0
+    y: 68.0
     z: 0.0
     w: 1.0
   }
@@ -3080,10 +2914,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_AUTO
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3118,7 +2948,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Async Encoding"
   font: "dirtylarry"
   id: "check_async/label"
   xanchor: XANCHOR_NONE
@@ -3144,13 +2974,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3191,8 +3018,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3248,10 +3073,6 @@ nodes {
   alpha: 1.0
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3286,7 +3107,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Init"
   font: "dirtylarry"
   id: "init/label"
   xanchor: XANCHOR_NONE
@@ -3312,13 +3133,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3358,8 +3176,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3381,7 +3197,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -3413,12 +3229,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3434,8 +3247,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.9
+    y: 0.9
     z: 1.0
     w: 1.0
   }
@@ -3453,7 +3266,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Stop Recording"
   font: "dirtylarry"
   id: "stop/label"
   xanchor: XANCHOR_NONE
@@ -3479,13 +3292,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3525,8 +3336,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3548,7 +3357,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -3580,12 +3389,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3601,7 +3407,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
+    x: 0.9
     y: 1.0
     z: 1.0
     w: 1.0
@@ -3620,7 +3426,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Mux"
   font: "dirtylarry"
   id: "mux/label"
   xanchor: XANCHOR_NONE
@@ -3646,13 +3452,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3692,8 +3496,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3715,7 +3517,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -3747,12 +3549,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3768,7 +3567,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
+    x: 0.9
     y: 1.0
     z: 1.0
     w: 1.0
@@ -3787,7 +3586,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Share"
   font: "dirtylarry"
   id: "share/label"
   xanchor: XANCHOR_NONE
@@ -3813,13 +3612,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3859,8 +3656,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -3882,7 +3677,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -3914,12 +3709,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -3935,7 +3727,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
+    x: 0.9
     y: 1.0
     z: 1.0
     w: 1.0
@@ -3954,7 +3746,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Preview"
   font: "dirtylarry"
   id: "preview/label"
   xanchor: XANCHOR_NONE
@@ -3980,13 +3772,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4026,12 +3816,10 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -4049,7 +3837,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 300.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -4081,12 +3869,10 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4121,7 +3907,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Start Recording"
   font: "dirtylarry"
   id: "record/label"
   xanchor: XANCHOR_NONE
@@ -4147,13 +3933,10 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4193,8 +3976,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -4216,7 +3997,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -4248,12 +4029,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4269,7 +4047,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
+    x: 0.9
     y: 1.0
     z: 1.0
     w: 1.0
@@ -4288,7 +4066,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Download"
   font: "dirtylarry"
   id: "download/label"
   xanchor: XANCHOR_NONE
@@ -4314,13 +4092,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4360,8 +4136,6 @@ nodes {
   alpha: 1.0
   template: "/gooey-dirtylarry/components/button.gui"
   template_node_child: false
-  custom_type: 0
-  enabled: true
 }
 nodes {
   position {
@@ -4383,7 +4157,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 220.0
+    x: 260.0
     y: 64.0
     z: 0.0
     w: 1.0
@@ -4415,12 +4189,9 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 nodes {
   position {
@@ -4436,8 +4207,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.9
+    y: 0.9
     z: 1.0
     w: 1.0
   }
@@ -4455,7 +4226,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "LABEL"
+  text: "Error"
   font: "dirtylarry"
   id: "error/label"
   xanchor: XANCHOR_NONE
@@ -4481,13 +4252,11 @@ nodes {
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
 }
 layers {
   name: "below"
