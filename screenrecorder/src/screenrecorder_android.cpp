@@ -225,8 +225,9 @@ extern "C" JNIEXPORT jboolean JNICALL Java_extension_screenrecorder_ScreenRecord
 	x_scale = _x_scale;
 	y_scale = _y_scale;
 
-	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment((dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
-	if (color_texture == NULL) {
+	dmGraphics::HContext graphics_context = dmGraphics::GetInstalledContext();
+	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment(graphics_context, (dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
+	if (color_texture == 0) {
 		dmLogError("Could not get the color attachment from render target.");
 		return false;
 	}

@@ -30,7 +30,7 @@ function update(self)
 		-- Tell the meteor where is the light source.
 		local position = go.get_position('/light')
 		local light = vmath.vector4(position.x, position.y, position.z, 0)
-		model.set_constant(msg.url(nil, meteor, 'model'), 'light', light)
+		go.set(msg.url(nil, meteor, 'model'), 'light', light)
 		
 		-- Increase meteors count.
 		self.meteor_count = self.meteor_count + 1

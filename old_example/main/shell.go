@@ -1,46 +1,26 @@
 components {
   id: "script"
   component: "/old_example/main/shell.script"
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
 }
 embedded_components {
   id: "model"
   type: "model"
   data: "mesh: \"/old_example/models/dae/shell.dae\"\n"
-  "material: \"/old_example/render/model.material\"\n"
-  "textures: \"/old_example/models/textures/shell.png\"\n"
-  "skeleton: \"\"\n"
-  "animations: \"\"\n"
-  "default_animation: \"\"\n"
   "name: \"unnamed\"\n"
+  "materials {\n"
+  "  name: \"default\"\n"
+  "  material: \"/old_example/render/model.material\"\n"
+  "  textures {\n"
+  "    sampler: \"tex0\"\n"
+  "    texture: \"/old_example/models/textures/shell.png\"\n"
+  "  }\n"
+  "}\n"
   ""
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
 }
 embedded_components {
   id: "collisionobject"
   type: "collisionobject"
-  data: "collision_shape: \"\"\n"
-  "type: COLLISION_OBJECT_TYPE_TRIGGER\n"
+  data: "type: COLLISION_OBJECT_TYPE_TRIGGER\n"
   "mass: 0.0\n"
   "friction: 0.1\n"
   "restitution: 0.5\n"
@@ -50,15 +30,8 @@ embedded_components {
   "  shapes {\n"
   "    shape_type: TYPE_BOX\n"
   "    position {\n"
-  "      x: 0.0\n"
-  "      y: 0.0\n"
-  "      z: 0.0\n"
   "    }\n"
   "    rotation {\n"
-  "      x: 0.0\n"
-  "      y: 0.0\n"
-  "      z: 0.0\n"
-  "      w: 1.0\n"
   "    }\n"
   "    index: 0\n"
   "    count: 3\n"
@@ -67,19 +40,5 @@ embedded_components {
   "  data: 0.5\n"
   "  data: 0.5\n"
   "}\n"
-  "linear_damping: 0.0\n"
-  "angular_damping: 0.0\n"
-  "locked_rotation: false\n"
   ""
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
 }

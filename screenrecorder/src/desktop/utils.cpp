@@ -237,12 +237,14 @@ namespace utils {
 		int value_type = lua_type(L, -1);
 		if (value_type == LUA_TLIGHTUSERDATA) {
 			*value = lua_touserdata(L, -1);
+		} else if (value_type == LUA_TNUMBER) {
+			*value = (void *)(uintptr_t)lua_tonumber(L, -1);
 		} else if (value_type == LUA_TNIL && default_value != NULL) {
 			*value = default_value;
 		}
 		lua_pop(L, 1);
 		if (*value == NULL && not_null) {
-			luaL_error(L, "Table's property %s is not a lightuserdata.", key);
+			luaL_error(L, "Table's property %s is not a lightuserdata or render target handle.", key);
 		}
 	}
 

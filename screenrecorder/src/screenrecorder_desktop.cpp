@@ -37,8 +37,9 @@ static const char *EVENT_RECORDED = "recorded";
 // The extension receives video frames from Defold's render target internal texture.
 // This method retrives this texture's OpenGL id.
 static bool get_render_target_texture_id(void *render_target, int *texture_id) {
-	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment((dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
-	if (color_texture == NULL) {
+	dmGraphics::HContext graphics_context = dmGraphics::GetInstalledContext();
+	dmGraphics::HTexture color_texture = dmGraphics::GetRenderTargetAttachment(graphics_context, (dmGraphics::HRenderTarget)render_target, dmGraphics::ATTACHMENT_COLOR);
+	if (color_texture == 0) {
 		dmLogError("Could not get the color attachment from render target.");
 		return false;
 	}

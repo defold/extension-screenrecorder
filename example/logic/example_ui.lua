@@ -1,6 +1,6 @@
 local M = {}
 
-local dirtylarry = require "gooey.themes.dirtylarry.dirtylarry"
+local dirtylarry = require "gooey-dirtylarry.dirtylarry"
 local recorder = require('example.modules.recorder')
 local share = require('example.modules.sharing')
 

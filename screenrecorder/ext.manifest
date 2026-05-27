@@ -7,10 +7,16 @@ platforms:
     armv7-ios:
         context:
             frameworks: ["AVFoundation", "ReplayKit", "CoreMedia"]
+    arm64-osx:
+        context:
+            flags:      ["-std=c++11"]
+            libs:       ["c++","srvpx","webm"]
+            frameworks: ["OpenGL"]
     x86_64-osx:
         context:
             flags:      ["-std=c++11"]
-            libs:       ["c++"]
+            libs:       ["c++","srvpx","webm"]
+            frameworks: ["OpenGL"]
     x86_64-linux:
         context:
             flags:      ["-std=c++11"]

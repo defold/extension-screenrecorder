@@ -1,8 +1,18 @@
 platforms:
+    arm64-osx:
+        context:
+            excludeLibs: ["record","vpx","graphics_vulkan","platform_vulkan","MoltenVK"]
+            excludeSymbols: ["GraphicsAdapterVulkan"]
+            symbols: ["GraphicsAdapterOpenGL"]
+            libs: ["record_null","graphics","platform"]
+            frameworks: ["OpenGL"]
     x86_64-osx:
         context:
-            excludeLibs: ["record","vpx"]
-            libs: ["record_null"]
+            excludeLibs: ["record","vpx","graphics_vulkan","platform_vulkan","MoltenVK"]
+            excludeSymbols: ["GraphicsAdapterVulkan"]
+            symbols: ["GraphicsAdapterOpenGL"]
+            libs: ["record_null","graphics","platform"]
+            frameworks: ["OpenGL"]
     x86_64-linux:
         context:
             excludeLibs: ["record","vpx"]

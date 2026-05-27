@@ -49,9 +49,11 @@ namespace dmGraphics {
 		HANDLE_RESULT_OK,
 		HANDLE_RESULT_ERROR
 	} HandleResult;
+	typedef void *HContext;
 	typedef void *HRenderTarget;
 	typedef void *HTexture;
-	HTexture GetRenderTargetAttachment(HRenderTarget render_target, ATTACHEMENTS);
+	HContext GetInstalledContext();
+	HTexture GetRenderTargetAttachment(HContext context, HRenderTarget render_target, ATTACHEMENTS);
 	HandleResult GetTextureHandle(HTexture texture, void **handle);
 	#ifdef __OBJC__
 		UIWindow *GetNativeiOSUIWindow();

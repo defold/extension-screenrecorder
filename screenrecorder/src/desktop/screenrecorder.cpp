@@ -1,5 +1,6 @@
 #if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 
+#include <cstring>
 #include <string>
 
 #include "screenrecorder.h"
@@ -48,16 +49,27 @@
 	static PFNGLMAPBUFFERPROC glMapBuffer = NULL;
 #endif
 
-// Adapt to OpenGL ES for HTML5 platform.
+// Adapt to OpenGL ES for HTML5 and OpenGL core profile on macOS.
 #ifdef DM_PLATFORM_HTML5
-	#define SHADER_HEADER "#version 100\n"\
+	#define VERTEX_SHADER_HEADER "#version 100\n"\
 	"precision mediump float;\n"
+	#define FRAGMENT_SHADER_HEADER VERTEX_SHADER_HEADER
+#elif defined(DM_PLATFORM_OSX)
+	#define VERTEX_SHADER_HEADER "#version 150\n"\
+	"#define attribute in\n"\
+	"#define varying out\n"
+	#define FRAGMENT_SHADER_HEADER "#version 150\n"\
+	"#define varying in\n"\
+	"#define texture2D texture\n"\
+	"out vec4 out_color;\n"\
+	"#define gl_FragColor out_color\n"
 #else
-	#define SHADER_HEADER "#version 110\n"
+	#define VERTEX_SHADER_HEADER "#version 110\n"
+	#define FRAGMENT_SHADER_HEADER VERTEX_SHADER_HEADER
 #endif
 
 // Captured gameplay frames are rendered onto a quad model to perform scaling and YUV color space conversion.
-static const char *vertex_shader_source = SHADER_HEADER
+static const char *vertex_shader_source = VERTEX_SHADER_HEADER
 	"attribute vec2 position;"
 	"attribute vec2 texcoord;"
 	"varying vec2 var_texcoord;"
@@ -67,7 +79,7 @@ static const char *vertex_shader_source = SHADER_HEADER
 	"}";
 
 // Convert RGB source frame to YUV frame, required by the encoder.
-static const char *fragment_shader_source = SHADER_HEADER
+static const char *fragment_shader_source = FRAGMENT_SHADER_HEADER
 	"varying vec2 var_texcoord;"
 	"uniform sampler2D tex0;"
 	"uniform vec2 scale;"
@@ -77,9 +89,6 @@ static const char *fragment_shader_source = SHADER_HEADER
 	"#define U_COMPONENT 1\n"
 	"#define V_COMPONENT 2\n"
 
-	"float width = resolution.x;"
-	"float height = resolution.y;"
-
 	// For scaling. Return black color if source pixel is outside of the image area.
 	"vec4 get_pixel(vec2 source) {"
 		"source = (source - 0.5) / scale + 0.5;"
@@ -88,6 +97,8 @@ static const char *fragment_shader_source = SHADER_HEADER
 	"}"
 
 	"float rgba_to_yuv(int component, float offset) {"
+		"float width = resolution.x;"
+		"float height = resolution.y;"
 		"if (component == Y_COMPONENT) {"
 			"vec4 rgba = get_pixel(vec2(mod(offset, width) / width, (1.0 - floor(offset / width) / height)));"			
 			"return 0.299 * rgba.r + 0.587 * rgba.g + 0.114 * rgba.b;"
@@ -103,6 +114,8 @@ static const char *fragment_shader_source = SHADER_HEADER
 	"}"
 
 	"void main() {"
+		"float width = resolution.x;"
+		"float height = resolution.y;"
 		"if (var_texcoord.y < 0.3333333333) {"
 			// Y component.
 			"float offset = 3.0 * width * ((var_texcoord.x - 0.5) + var_texcoord.y * height);"
@@ -185,8 +198,12 @@ ScreenRecorder::ScreenRecorder() :
 	scale_uniform(0),
 	resolution_uniform(0),
 	fbo(0),
+	pbo(),
 	pbo_index(0),
 	is_pbo_full(false),
+	image(),
+	encoder_config(),
+	codec(),
 	frame_count(0),
 	circular_buffer(NULL),
 	encoding_thread(NULL),
@@ -240,12 +257,12 @@ ScreenRecorder::ScreenRecorder() :
 
 ScreenRecorder::~ScreenRecorder() {
 	is_initialized = false;
-	if (glIsProgram(shader_program)) {
+	if (shader_program != 0) {
 		glDeleteProgram(shader_program);
 		shader_program = 0;
 		GLenum error = glGetError(); if (error) dmLogError("glDeleteProgram: %#04X", error);
 	}
-	if (glIsBuffer(vertex_buffer)) {
+	if (vertex_buffer != 0) {
 		glDeleteBuffers(1, &vertex_buffer);
 		vertex_buffer = 0;
 		GLenum error = glGetError(); if (error) dmLogError("glDeleteBuffers: %#04X", error);
@@ -423,7 +440,10 @@ bool ScreenRecorder::start(char *error_message) {
 	encoder_config.g_h = height;
 	encoder_config.g_timebase.num = 1;
 	encoder_config.g_timebase.den = *capture_params.fps;
-	encoder_config.rc_target_bitrate = *capture_params.bitrate;
+	encoder_config.rc_target_bitrate = (*capture_params.bitrate + 999) / 1000;
+	if (encoder_config.rc_target_bitrate == 0) {
+		encoder_config.rc_target_bitrate = 1;
+	}
 	#ifdef DM_PLATFORM_HTML5
 		encoder_config.g_threads = 0;
 	#else
@@ -441,8 +461,19 @@ bool ScreenRecorder::start(char *error_message) {
 	encoder_config.kf_mode = VPX_KF_AUTO;
 	encoder_config.kf_max_dist = *capture_params.iframe * *capture_params.fps;
 
-	if (vpx_codec_enc_init(&codec, codec_interface, &encoder_config, 0)) {
-		ERROR_MESSAGE("Failed to initialize encoder: %s", codec.err_detail);
+	memset(&codec, 0, sizeof(codec));
+	const vpx_codec_err_t result = vpx_codec_enc_init(&codec, codec_interface, &encoder_config, 0);
+	if (result != VPX_CODEC_OK) {
+		const char *error = vpx_codec_err_to_string(result);
+		const char *detail = vpx_codec_error_detail(&codec);
+		if (error == NULL) {
+			error = "unknown error";
+		}
+		if (detail != NULL) {
+			ERROR_MESSAGE("Failed to initialize encoder: %s: %s", error, detail);
+		} else {
+			ERROR_MESSAGE("Failed to initialize encoder: %s", error);
+		}
 		return false;
 	}
 

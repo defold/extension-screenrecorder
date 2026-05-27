@@ -1,0 +1,51 @@
+images {
+  image: "/gooey-dirtylarry/images/button_normal.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/button_pressed.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/checkbox_checked_normal.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/checkbox_checked_pressed.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/checkbox_normal.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/checkbox_pressed.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/input.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/radio_checked_normal.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/radio_checked_pressed.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/radio_normal.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/radio_pressed.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/gooey-dirtylarry/images/transparent1px.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+margin: 0
+extrude_borders: 1
+inner_padding: 0
